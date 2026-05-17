@@ -76,7 +76,6 @@ class CombatScreen(BaseScreen):
             self.player.bullet_type = WEAPON_KEYS[key]
 
     def kill_all_enemies(self):
-        self.player.coins += len(self.enemies)
         self.enemies = []
 
     def update_player(self, dt):
@@ -171,7 +170,7 @@ class CombatScreen(BaseScreen):
         if self.player.health <= 0:
             from game.screens.game_over_screen import GameOverScreen
 
-            self.game.screen_manager.set_screen(GameOverScreen(self.game, self.points))
+            self.game.screen_manager.set_screen(GameOverScreen(self.game))
     
     def is_complete(self):
         if self.complete:
@@ -228,9 +227,12 @@ class CombatScreen(BaseScreen):
 
         for trigger in self.triggers:
             if self.player.circle_collides_with_rect(trigger.rect):
+                self.reward_end_of_room()
                 self.game.finish_current_screen()
                 return
             
+    def reward_end_of_room(self):
+        self.player.coins += int(self.player.health)            
 
     def update(self, dt):
         self.update_player(dt)

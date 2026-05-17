@@ -27,6 +27,8 @@ class Player(LivingEntity):
         self.damage = config.PLAYER_DAMAGE
         self.fire_rate = config.PLAYER_FIRE_COOLDOWN
         self.speed = config.PLAYER_SPEED
+        self.luck = config.PLAYER_LUCK
+        self.shoot_distance = config.PLAYER_SHOOT_DISTANCE
         
         
         self.bullet_type = "normal"
@@ -186,9 +188,14 @@ class Player(LivingEntity):
         
     def draw_player_stats(self, surface, font, x=15, y=300):
         lines = [
-        f"Speed: {self.speed}",
+        f"Coins: {self.coins}",
+        f"Health: {self.health}",
         f"Damage: {self.damage}",
+        f"Speed: {self.speed}",
         f"Fire rate: {self.fire_rate}",
+        f"Shoot distance: {self.shoot_distance}",
+        f"Body damage: {self.body_damage}",
+        f"Luck: {self.luck}",
         ]
 
         line_height = 28

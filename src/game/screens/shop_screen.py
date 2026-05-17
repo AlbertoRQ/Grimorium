@@ -79,6 +79,7 @@ class ShopScreen(BaseScreen):
             self.potions_in_shop.append({
                 "id": potion_data["id"],
                 "image": potion_data["image"],
+                "price": config.POTION_DATA[potion_data["id"]]["price"],
                 "rect": potion_data["image"].get_rect(center=slot),
             })
 
@@ -150,11 +151,22 @@ class ShopScreen(BaseScreen):
             })
 
     def buy_potion(self, potion):
+        if self.player.coins < potion["price"]:
+            return
+        
         self.apply_potion_effect(potion["id"])
+        self.player.coins -= potion["price"]
         self.potions_in_shop.remove(potion)
 
     def apply_potion_effect(self, potion_id):
-        stat, amount = config.POTION_EFFECTS[potion_id]
+        potion_data = config.POTION_DATA[potion_id]
+        stat = potion_data["stat"]
+        amount = potion_data["amount"]
+
+        if stat == "health":
+            self.player.health = min(self.player.max_health, self.player.health + amount)
+            return
+
         current_value = getattr(self.player, stat)
         setattr(self.player, stat, current_value + amount)
 
@@ -185,7 +197,7 @@ class ShopScreen(BaseScreen):
 
         self.player.draw(surface)
 
-        x, y = self.scale_point((188,116))
+        x, y = self.scale_point((188,100))
         self.player.draw_player_stats(surface, self.info_font, x, y)
 
 

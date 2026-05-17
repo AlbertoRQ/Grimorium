@@ -24,11 +24,14 @@ BUTTON_HOVER_COLOR = (85, 100, 120)
 PLAYER_RADIUS = 30
 
 PLAYER_SPEED = 600
-PLAYER_MAX_HEALTH = 10000
+PLAYER_MAX_HEALTH = 3
 PLAYER_FIRE_COOLDOWN = 0.5
 PLAYER_DAMAGE = 1
 PLAYER_BODY_DAMAGE = 0
+PLAYER_LUCK = 0
+PLAYER_SHOOT_DISTANCE = 5
 PLAYER_INVULNERABILITY_TIME = 1
+
 
 FORWARD_BONUS = 120
 SIDE_DRIFT = 140
@@ -96,10 +99,40 @@ RUN_PATTERN = [
 ]
 
 
-POTION_EFFECTS = {
-    "health": ("max_health", 50),
-    "speed": ("speed", 25),
-    "damage": ("damage", 1),
-    "body_damage": ("body_damage", 1),
-    "speed_atack": ("fire_rate", -0.1),
+POTION_DATA = {
+    "health": {
+        "stat": "health",
+        "amount": 1000,
+        "price": 2,
+    },
+    "speed": {
+        "stat": "speed",
+        "amount": 25,
+        "price": 2,
+    },
+    "damage": {
+        "stat": "damage",
+        "amount": 0.5,
+        "price": 2,
+    },
+    "body_damage": {
+        "stat": "body_damage",
+        "amount": 0.5,
+        "price": 2,
+    },
+    "speed_atack": {
+        "stat": "fire_rate",
+        "amount": -0.1,
+        "price": 2,
+    },
+    "luck": {
+        "stat": "luck",
+        "amount": 1,
+        "price": 2,
+    },
+    "shoot_distance": {
+        "stat": "shoot_distance",
+        "amount": 1,
+        "price": 2,
+    } 
 }

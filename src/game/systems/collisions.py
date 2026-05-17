@@ -65,7 +65,7 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
 
                 if enemy.is_dead():
                     enemies_left.remove(enemy)
-                    points_gained += 1
+                    points_gained += 0
 
                 break
 
@@ -103,7 +103,7 @@ def resolve_enemies_touch_player(enemies, player, blockers):
             if not enemy.is_dead():
                 enemies_left.append(enemy)
             else:
-                points += 1
+                points += 0
         
         else:
             enemies_left.append(enemy)
