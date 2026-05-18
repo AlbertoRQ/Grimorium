@@ -47,6 +47,8 @@ class CombatScreen(BaseScreen):
         self.triggers = []
         self.triggers_spawned = False
 
+        self.room_time = 0
+
     def get_blockers(self):
         return self.room.get_blocking_rects()
 
@@ -154,6 +156,15 @@ class CombatScreen(BaseScreen):
         for enemy_bullet in self.enemies_bullets:
             enemy_bullet.draw(surface)
 
+        lines = [f"Time: {self.room_time:.1f}"]
+        x = 50
+        y = 150
+        line_height = 28
+        for line in lines:
+            text = self.font.render(line, True, config.HUD_COLOR)
+            surface.blit(text, (x, y))
+            y += line_height
+
         self.draw_extra(surface)
         self.draw_hud(surface)
 
@@ -232,7 +243,13 @@ class CombatScreen(BaseScreen):
                 return
             
     def reward_end_of_room(self):
-        self.player.coins += int(self.player.health)            
+        bonus = self.player.coins // 10
+        self.player.coins += bonus
+        self.player.coins += int(self.player.health)
+        time_coins = 5
+        time_coins -= int(self.room_time/time_coins)
+        if time_coins > 0:
+            self.player.coins += time_coins         
 
     def update(self, dt):
         self.update_player(dt)
@@ -245,4 +262,6 @@ class CombatScreen(BaseScreen):
         self.update_items()
         self.update_triggers()
         self.check_next_trigger()
-
+        if not self.complete:
+            self.room_time += dt
+        
