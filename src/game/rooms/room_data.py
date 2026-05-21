@@ -44,7 +44,7 @@ RANDOM_ROOM_1 = [
 ]
 
 RANDOM_ROOM_2 = [
-    ".............",
+    "OO..........O",
     ".NE...E...E..",
     ".............",
     "VVVVVV.VVVVVV",

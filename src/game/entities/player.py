@@ -5,13 +5,18 @@ import pygame
 
 from game import config
 from game.entities.entity import LivingEntity
-from game.entities.bullets.normal_bullet import create_normal_shot
-from game.entities.bullets.gatling_bullet import create_gatling_shot
-from game.entities.bullets.spread_bullet import create_spread_shot
+from game.entities.bullets.bullet import create_normal_shot
+from game.entities.bullets.bullet import create_gatling_shot
+from game.entities.bullets.bullet import create_spread_shot
 from game.entities.items.item_data import ITEM_DEFINITIONS 
 
 from game.utils.paths import asset_path
 
+SHOT_FACTORIES = {
+    "normal": create_normal_shot,
+    "gatling": create_gatling_shot,
+    "spread": create_spread_shot,
+}
 
 class Player(LivingEntity):
     def __init__(self):
@@ -41,6 +46,11 @@ class Player(LivingEntity):
 
         self.move_dir_x = 0
         self.move_dir_y = 0
+        self.velocity_x = 0
+        self.velocity_y = 0
+        self.acceleration = 2000
+        self.friction = 2000
+        self.max_speed = config.PLAYER_SPEED
 
         self.sprite_sheet = pygame.image.load(asset_path("images", "player", "mage2.bmp")).convert()
         self.sprite_sheet .set_colorkey((35, 97, 72))
@@ -83,10 +93,28 @@ class Player(LivingEntity):
             move_x /= length
             move_y /= length
 
-        self.move_dir_x = move_x
-        self.move_dir_y = move_y
+        self.velocity_x += move_x * self.acceleration * dt
+        self.velocity_y += move_y * self.acceleration * dt
 
-        self.move_by(move_x * self.speed * dt, move_y * self.speed * dt, blockers, entities)
+        speed = math.hypot(self.velocity_x, self.velocity_y)
+        if speed > self.max_speed:
+            scale = self.max_speed / speed
+            self.velocity_x *= scale
+            self.velocity_y *= scale
+
+        if move_x == 0:
+            if self.velocity_x > 0:
+                self.velocity_x = max(0, self.velocity_x - self.friction * dt)
+            elif self.velocity_x < 0:
+                self.velocity_x = min(0, self.velocity_x + self.friction * dt)
+
+        if move_y == 0:
+            if self.velocity_y > 0:
+                self.velocity_y = max(0, self.velocity_y - self.friction * dt)
+            elif self.velocity_y < 0:
+                self.velocity_y = min(0, self.velocity_y + self.friction * dt)
+
+        self.move_by(self.velocity_x * dt, self.velocity_y * dt, blockers, entities)
         
         self.sprite = pygame.transform.scale(self.sprite, (self.sprite_size_x, self.sprite_size_y))
 
@@ -130,12 +158,22 @@ class Player(LivingEntity):
             shoot_x /= length
             shoot_y /= length
 
-        forward_amount = self.move_dir_x * shoot_x + self.move_dir_y * shoot_y
+        move_speed = math.hypot(self.velocity_x, self.velocity_y)
 
+        if move_speed > 0:
+            move_dir_x = self.velocity_x / move_speed
+            move_dir_y = self.velocity_y / move_speed
+        else:
+            move_dir_x = 0
+            move_dir_y = 0
+
+        speed_factor = move_speed / self.max_speed
+        speed_factor = min(speed_factor, 1)
+
+        forward_amount = (move_dir_x * shoot_x + move_dir_y * shoot_y) * speed_factor
         right_x = -shoot_y
         right_y = shoot_x
-
-        side_amount = self.move_dir_x * right_x + self.move_dir_y * right_y
+        side_amount = (move_dir_x * right_x + move_dir_y * right_y) * speed_factor
 
         distance = math.hypot(shoot_x, shoot_y)
 
@@ -147,12 +185,8 @@ class Player(LivingEntity):
         vel_x = shoot_x * bullet_speed + right_x * side_amount * config.SIDE_DRIFT
         vel_y = shoot_y * bullet_speed + right_y * side_amount * config.SIDE_DRIFT
 
-        if self.bullet_type == 'normal':
-            shoot, rate = create_normal_shot(self.x, self.y, vel_x, vel_y)
-        elif self.bullet_type == 'gatling':
-            shoot, rate =  create_gatling_shot(self.x, self.y, vel_x, vel_y)
-        elif self.bullet_type == 'spread':
-            shoot, rate = create_spread_shot(self.x, self.y, vel_x, vel_y)
+        factory = SHOT_FACTORIES[self.bullet_type]
+        shoot, rate = factory(self.x, self.y, vel_x, vel_y, self.shoot_distance)
         
         self.shoot_timer = self.fire_rate * rate
         return shoot

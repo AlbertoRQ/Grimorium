@@ -73,7 +73,6 @@ class Room:
 
                 elif tile == "V":
                     self.voids.append(rect)
-                    self.add_blocker(rect)
 
                 elif tile == "N":
                     self.trigger_spawns.append(rect)
@@ -120,5 +119,14 @@ class Room:
         self.walls.append(rect)
         self.add_blocker(rect)
 
-    def get_blocking_rects(self):
-        return self.blocking_rects
+    def get_blocking_rects(self, include_walls=True, include_objects=True, include_voids=False):
+        rects = []
+
+        if include_walls:
+            rects.extend(self.walls)
+        if include_objects:
+            rects.extend(self.objects)
+        if include_voids:
+            rects.extend(self.voids)
+
+        return rects

@@ -49,8 +49,8 @@ class CombatScreen(BaseScreen):
 
         self.room_time = 0
 
-    def get_blockers(self):
-        return self.room.get_blocking_rects()
+    def get_blockers(self, include_walls=True, include_objects=True, include_voids=False):
+        return self.room.get_blocking_rects(include_walls, include_objects, include_voids)
 
     def place_player_at_spawn(self):
         if self.room.player_spawn is not None:
@@ -82,7 +82,7 @@ class CombatScreen(BaseScreen):
 
     def update_player(self, dt):
         keys = pygame.key.get_pressed()
-        self.player.move(keys, dt, self.get_blockers(), [])
+        self.player.move(keys, dt, self.get_blockers(True, True, True), [])
         self.player.update(dt)
 
     def update_player_shooting(self):
@@ -91,26 +91,28 @@ class CombatScreen(BaseScreen):
 
     def update_enemies(self, dt):
         for enemy in self.enemies:
-            new_bullets = enemy.update(self.player, dt, self.get_blockers(), self.enemies)
+            new_bullets = enemy.update(self.player, dt, self.get_blockers(True, True, True), self.enemies)
 
             if new_bullets:
                 self.enemies_bullets.extend(new_bullets)
 
     def update_projectiles(self, dt):
+        blockers = self.get_blockers(True, True, False)
+
         for bullet in self.bullets:
-            bullet.update(dt)
+            bullet.update(dt, blockers)
 
         for enemy_bullet in self.enemies_bullets:
-            enemy_bullet.update(dt)
+            enemy_bullet.update(dt, blockers)
 
         self.bullets = [
             bullet for bullet in self.bullets
-            if not bullet.is_offscreen()
+            if not bullet.is_offscreen() and not bullet.destroyed
         ]
 
         self.enemies_bullets = [
             bullet for bullet in self.enemies_bullets
-            if not bullet.is_offscreen()
+            if not bullet.is_offscreen() and not bullet.destroyed
         ]
 
 
@@ -130,7 +132,7 @@ class CombatScreen(BaseScreen):
         self.enemies, coins_gained = resolve_enemies_touch_player(
             self.enemies,
             self.player,
-            self.get_blockers()
+            self.get_blockers(True, True, True)
         )
         self.player.coins += coins_gained
 

@@ -3,7 +3,7 @@
 import math
 
 from game import config
-from game.entities.bullets.normal_bullet import create_normal_shot
+from game.entities.bullets.bullet import create_normal_shot
 from game.entities.enemies.enemy import Enemy
 
 
@@ -22,6 +22,7 @@ class ShooterEnemy(Enemy):
         self.bullet_speed = config.SHOOTER_ENEMY_BULLET_SPEED
         self.shoot_timer = 0.0
         self.preferred_distance = 300
+        self.shoot_distance = config.SHOOTER_ENEMY_SHOOT_DISTANCE
 
     def move(self, player, dt, blockers, circle):
         diff_x = player.x - self.x
@@ -60,8 +61,10 @@ class ShooterEnemy(Enemy):
         vel_x = (diff_x / distance) * self.bullet_speed
         vel_y = (diff_y / distance) * self.bullet_speed
 
-        shot, rate = create_normal_shot(self.x, self.y, vel_x, vel_y)
+        shot, rate = create_normal_shot(self.x, self.y, vel_x, vel_y, self.shoot_distance)
         self.shoot_timer = self.shoot_cooldown * rate
+        for bullet in shot:
+            bullet.color = config.ENEMY_BULLET_COLOR
 
         return shot
 
