@@ -55,10 +55,12 @@ class Entity:
 
 
 class LivingEntity(Entity):
-    def __init__(self, x, y, radius, color, max_health):
+    def __init__(self, x, y, radius, color, base_color, max_health):
         super().__init__(x, y, radius, color)
         self.max_health = max_health
         self.health = max_health
+        self.base_color = color
+        
 
     def take_damage(self, damage):
         self.health = max(0, self.health - damage)

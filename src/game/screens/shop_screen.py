@@ -114,6 +114,7 @@ class ShopScreen(BaseScreen):
             self.books_in_shop.append({
                 "id": book_data["id"],
                 "image": book_data["image"],
+                "price": config.BOOK_DATA[book_data["id"]]["price"],
                 "rect": book_data["image"].get_rect(center=slot),
             })
 
@@ -147,6 +148,7 @@ class ShopScreen(BaseScreen):
             self.powers_in_shop.append({
                 "id": power_data["id"],
                 "image": power_data["image"],
+                "price": config.POWER_DATA[power_data["id"]]["price"],
                 "rect": power_data["image"].get_rect(center=slot),
             })
 
@@ -170,6 +172,38 @@ class ShopScreen(BaseScreen):
         current_value = getattr(self.player, stat)
         setattr(self.player, stat, current_value + amount)
 
+    def buy_book(self, book):
+        if self.player.coins < book["price"]:
+            return
+        
+        self.apply_book_effect(book["id"])
+        self.player.coins -= book["price"]
+        self.books_in_shop.remove(book)
+
+    def apply_book_effect(self, book_id):
+        effect = config.BOOK_DATA[book_id]["effect"]
+        element = effect["element"]
+
+        for stat, bonus in effect.items():
+            if stat == "element":
+                continue
+
+            self.player.element_stats[element][stat] += bonus
+
+    def buy_power(self, power):
+        if self.player.coins < power["price"]:
+            return
+
+        self.apply_power_effect(power["id"])
+        self.player.coins -= power["price"]
+        self.powers_in_shop.remove(power)
+
+    def apply_power_effect(self, power_id):
+        power_data = config.POWER_DATA[power_id]
+        element = power_data["element"]
+
+        self.player.bullet_element = element
+
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
@@ -181,6 +215,16 @@ class ShopScreen(BaseScreen):
             for potion in self.potions_in_shop[:]:
                 if potion["rect"].collidepoint(mouse_pos):
                     self.buy_potion(potion)
+                    break
+
+            for power in self.powers_in_shop[:]:
+                if power["rect"].collidepoint(mouse_pos):
+                    self.buy_power(power)
+                    break
+
+            for book in self.books_in_shop[:]:
+                if book["rect"].collidepoint(mouse_pos):
+                    self.buy_book(book)
                     break
 
     def draw(self, surface):

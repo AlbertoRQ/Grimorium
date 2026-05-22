@@ -25,6 +25,7 @@ class Player(LivingEntity):
             config.SCREEN_HEIGHT / 2,
             config.PLAYER_RADIUS,
             config.PLAYER_COLOR,
+            config.PLAYER_COLOR,
             config.PLAYER_MAX_HEALTH,
         )
 
@@ -35,9 +36,20 @@ class Player(LivingEntity):
         self.luck = config.PLAYER_LUCK
         self.shoot_distance = config.PLAYER_SHOOT_DISTANCE
         
-        
-        self.bullet_type = "normal"
+
         self.shoot_timer = 0
+        self.bullet_type = "normal"
+        self.bullet_element = None
+        self.element_stats = {
+            "fire": {
+                "burn_duration": 3,
+                "burn_damage": 0.5,
+                "burn_tick_timer": 0.5,
+            },
+            "ice": {},
+            "electric": {},
+        }
+        
 
         self.invulnerability_timer = 0
 
@@ -185,8 +197,12 @@ class Player(LivingEntity):
         vel_x = shoot_x * bullet_speed + right_x * side_amount * config.SIDE_DRIFT
         vel_y = shoot_y * bullet_speed + right_y * side_amount * config.SIDE_DRIFT
 
+
+        effect_data = {}
+        if self.bullet_element is not None:
+            effect_data = self.element_stats[self.bullet_element].copy()
         factory = SHOT_FACTORIES[self.bullet_type]
-        shoot, rate = factory(self.x, self.y, vel_x, vel_y, self.shoot_distance)
+        shoot, rate = factory(self.x, self.y, vel_x, vel_y, self.shoot_distance, self.bullet_element, effect_data)
         
         self.shoot_timer = self.fire_rate * rate
         return shoot
@@ -230,6 +246,7 @@ class Player(LivingEntity):
         f"Shoot distance: {self.shoot_distance}",
         f"Body damage: {self.body_damage}",
         f"Luck: {self.luck}",
+        f"Element: {self.bullet_element}",
         ]
 
         line_height = 28

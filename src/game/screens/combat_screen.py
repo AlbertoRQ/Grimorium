@@ -21,6 +21,13 @@ WEAPON_KEYS = {
     pygame.K_3: "spread",
 }
 
+ELEMENTS_KEYS = {
+    pygame.K_4: None,
+    pygame.K_5: "fire",
+    pygame.K_6: "ice",
+    pygame.K_7: "electric",
+}
+
 
 class CombatScreen(BaseScreen):
     def __init__(self, game, room_layout, room_type):
@@ -76,6 +83,8 @@ class CombatScreen(BaseScreen):
     def handle_weapon_key(self, key):
         if key in WEAPON_KEYS:
             self.player.bullet_type = WEAPON_KEYS[key]
+        if key in ELEMENTS_KEYS:
+            self.player.bullet_element = ELEMENTS_KEYS[key]
 
     def kill_all_enemies(self):
         self.enemies = []
@@ -135,6 +144,9 @@ class CombatScreen(BaseScreen):
             self.get_blockers(True, True, True)
         )
         self.player.coins += coins_gained
+
+    def remove_dead_enemies(self):
+        self.enemies = [enemy for enemy in self.enemies if not enemy.is_dead()]
 
     def draw(self, surface):
         surface.fill(config.BACKGROUND_COLOR)
@@ -258,6 +270,7 @@ class CombatScreen(BaseScreen):
         self.update_player_shooting()
         self.update_projectiles(dt)
         self.update_enemies(dt)
+        self.remove_dead_enemies()
         self.resolve_collisions()
         self.check_game_over()
         self.is_complete()

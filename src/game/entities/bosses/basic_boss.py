@@ -3,24 +3,25 @@
 import pygame
 
 from game import config
-from game.entities.entity import LivingEntity
+from game.entities.enemies.enemy import Enemy
 
 
-class BasicBoss(LivingEntity):
+class BasicBoss(Enemy):
     def __init__(self):
         super().__init__(
-            config.SCREEN_WIDTH / 2,
-            60,
+            (config.SCREEN_WIDTH / 2,config.SCREEN_WIDTH / 2),
+            0,
+            config.BOSS_MAX_HEALTH,
             config.BOSS_RADIUS,
             config.ENEMY_COLOR,
-            config.BOSS_MAX_HEALTH,
+            config.BOSS_DAMAGE,
+            100
+            
         )
 
         self.body_damage = config.BOSS_BODY_DAMAGE
         self.speed = 0
-        self.damage = config.BOSS_DAMAGE
         self.regen = config.BOSS_REGEN
-        self.score_value = 100
 
     def draw_boss_health_bar(self, surface, font):
         bar_width = config.SCREEN_WIDTH - 80
@@ -42,7 +43,7 @@ class BasicBoss(LivingEntity):
         pygame.draw.rect(surface, (255, 255, 255), background_rect, 2)
 
         text = font.render(
-            f"{int(self.health)} / {self.max_health}",
+            f"{self.health:.1f} / {self.max_health}",
             True,
             (255, 255, 255),
         )
@@ -51,4 +52,4 @@ class BasicBoss(LivingEntity):
         surface.blit(text, text_rect)
 
     def update(self, player, dt, blockers, entities):
-        return []
+        super().update(player, dt, blockers, entities)

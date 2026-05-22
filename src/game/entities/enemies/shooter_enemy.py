@@ -23,6 +23,7 @@ class ShooterEnemy(Enemy):
         self.shoot_timer = 0.0
         self.preferred_distance = 300
         self.shoot_distance = config.SHOOTER_ENEMY_SHOOT_DISTANCE
+        self.bullet_element = None
 
     def move(self, player, dt, blockers, circle):
         diff_x = player.x - self.x
@@ -61,7 +62,11 @@ class ShooterEnemy(Enemy):
         vel_x = (diff_x / distance) * self.bullet_speed
         vel_y = (diff_y / distance) * self.bullet_speed
 
-        shot, rate = create_normal_shot(self.x, self.y, vel_x, vel_y, self.shoot_distance)
+
+        effect_data = {}
+        if self.bullet_element is not None:
+            effect_data = self.element_stats[self.bullet_element].copy()
+        shot, rate = create_normal_shot(self.x, self.y, vel_x, vel_y, self.shoot_distance, self.bullet_element, effect_data)
         self.shoot_timer = self.shoot_cooldown * rate
         for bullet in shot:
             bullet.color = config.ENEMY_BULLET_COLOR
@@ -69,6 +74,6 @@ class ShooterEnemy(Enemy):
         return shot
 
     def update(self, player, dt, blockers, entities):
-        self.move(player, dt, blockers, entities)
+        super().update(player, dt, blockers, entities)
         self.shoot_timer = max(0, self.shoot_timer - dt)
         return self.shoot(player)

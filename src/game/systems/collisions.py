@@ -49,6 +49,28 @@ def separate_circles(a, b, blockers):
     if b.collides_with_rects(blockers):
         b.x, b.y = old_bx, old_by
 
+
+def apply_fire_effect(bullet, enemy):
+    if enemy.is_burned == False:
+        enemy.is_burned = True
+        enemy.status_effects["burn"]["timer"] = bullet.effect_data["burn_duration"]
+        enemy.status_effects["burn"]["tick_timer"] = bullet.effect_data["burn_tick_timer"]
+        enemy.status_effects["burn"]["damage"] = bullet.effect_data["burn_damage"]
+
+def apply_ice_effect(bullet, enemy):
+    enemy.slow_timer = 2.0
+    enemy.slow_multiplier = 0.7
+
+def apply_electric_effect(bullet, enemy):
+    enemy.take_damage(2)
+
+
+ELEMENT_EFFECTS = {
+    "fire": apply_fire_effect,
+    "ice": apply_ice_effect,
+    "electric": apply_electric_effect,
+}
+
 def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
     bullets_left = []
     enemies_left = enemies[:]
@@ -61,6 +83,11 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
         for enemy in enemies_left[:]:
             if circles_collide(bullet, enemy):
                 enemy.take_damage(damage)
+
+                effect = ELEMENT_EFFECTS.get(bullet.element)
+                if effect is not None:
+                    effect(bullet, enemy)
+
                 bullet_hit = True
 
                 if enemy.is_dead():

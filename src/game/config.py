@@ -6,7 +6,7 @@ pero puesta dentro de la estructura por carpetas.
 
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
-FPS = 60
+FPS = 240
 WINDOW_TITLE = "Grimorium"
 
 ROOM_CELL_SIZE = 70
@@ -15,7 +15,7 @@ WALL_THICKNESS = 20
 BACKGROUND_COLOR = (30, 30, 40)
 PLAYER_COLOR = (80, 220, 120)
 PLAYER_COLOR_INVENCIBLE = (160, 255, 180)
-BULLET_COLOR = (255, 220, 90)
+BULLET_COLOR = (218, 245, 244)
 ENEMY_COLOR = (220, 90, 90)
 ENEMY_BULLET_COLOR = (220, 30, 30)
 HUD_COLOR = (255, 255, 255)
@@ -124,7 +124,7 @@ POTION_DATA = {
     },
     "speed_atack": {
         "stat": "fire_rate",
-        "amount": -0.01,
+        "amount": -0.025,
         "price": 2,
     },
     "luck": {
@@ -137,4 +137,96 @@ POTION_DATA = {
         "amount": 5,
         "price": 2,
     } 
+}
+
+POWER_DATA = {
+    "fire": {
+        "price": 5,
+        "element": "fire",
+    },
+    "ice": {
+        "price": 5,
+        "element": "ice",
+    },
+}
+
+
+BOOK_DATA = {
+    "fire": {
+        "price": 6,
+        "effect": {
+            "element": "fire",
+            "burn_damage": 0.2,
+            "burn_duration": 1.0,
+        },
+    },
+    "electric": {
+        "price": 6,
+        "effect": {
+            "element": "electric",
+            "shock_damage": 1.0,
+        },
+    },
+    "ice": {
+        "price": 6,
+        "effect": {
+            "element": "ice",
+            "slow_duration": 0.8,
+            "slow_multiplier": 0.1,
+        },
+    },
+    "fire_electric": {
+        "price": 9,
+        "effect": {
+            "element": "fire",
+            "burn_damage": 0.3,
+            "burn_duration": 1.0,
+        },
+    },
+    "fire_ice": {
+        "price": 9,
+        "effect": {
+            "element": "fire",
+            "burn_damage": 0.2,
+            "burn_duration": 1.5,
+        },
+    },
+    "fire_potion": {
+        "price": 8,
+        "effect": {
+            "element": "fire",
+            "burn_damage": 0.2,
+            "burn_duration": 1.0,
+        },
+    },
+    "ice_electric": {
+        "price": 9,
+        "effect": {
+            "element": "ice",
+            "slow_duration": 1.0,
+            "slow_multiplier": 0.1,
+        },
+    },
+    "potion_electric": {
+        "price": 8,
+        "effect": {
+            "element": "electric",
+            "shock_damage": 1.5,
+        },
+    },
+    "potion_ice": {
+        "price": 8,
+        "effect": {
+            "element": "ice",
+            "slow_duration": 1.2,
+            "slow_multiplier": 0.1,
+        },
+    },
+    "potion": {
+        "price": 5,
+        "effect": {
+            "element": "fire",
+            "burn_duration": 0.5,
+        },
+    },
 }
