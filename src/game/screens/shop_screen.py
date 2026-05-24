@@ -202,7 +202,11 @@ class ShopScreen(BaseScreen):
         power_data = config.POWER_DATA[power_id]
         element = power_data["element"]
 
-        self.player.bullet_element = element
+        if power_data["mode"] == "base":
+            if element not in self.player.base_bullet_elements:
+                self.player.base_bullet_elements.append(element)
+        else:
+            self.player.extra_bullet_element[element] = power_data["chance"]
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:

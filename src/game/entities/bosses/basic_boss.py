@@ -10,7 +10,7 @@ class BasicBoss(Enemy):
     def __init__(self):
         super().__init__(
             (config.SCREEN_WIDTH / 2,config.SCREEN_WIDTH / 2),
-            0,
+            200,
             config.BOSS_MAX_HEALTH,
             config.BOSS_RADIUS,
             config.ENEMY_COLOR,
@@ -20,8 +20,8 @@ class BasicBoss(Enemy):
         )
 
         self.body_damage = config.BOSS_BODY_DAMAGE
-        self.speed = 0
         self.regen = config.BOSS_REGEN
+        self.direction_x = 1
 
     def draw_boss_health_bar(self, surface, font):
         bar_width = config.SCREEN_WIDTH - 80
@@ -50,6 +50,16 @@ class BasicBoss(Enemy):
 
         text_rect = text.get_rect(center=background_rect.center)
         surface.blit(text, text_rect)
+
+    def move(self, player, dt, blockers, entities):
+        old_x = self.x
+
+        move_x = self.direction_x * self.speed * dt
+        self.move_by(move_x, 0, blockers, entities)
+
+        if self.x == old_x:
+            self.direction_x *= -1
+
 
     def update(self, player, dt, blockers, entities):
         super().update(player, dt, blockers, entities)

@@ -2,6 +2,7 @@
 
 import math
 import pygame
+import random
 
 from game import config
 from game.entities.entity import LivingEntity
@@ -39,14 +40,23 @@ class Player(LivingEntity):
 
         self.shoot_timer = 0
         self.bullet_type = "normal"
-        self.bullet_element = None
+        self.base_bullet_elements = []
+        self.extra_bullet_element = {}
         self.element_stats = {
             "fire": {
+                "level": 1,
                 "burn_duration": 3,
                 "burn_damage": 0.5,
                 "burn_tick_timer": 0.5,
             },
-            "ice": {},
+            "ice": {
+                "level": 1,
+                "slow_duration": 2,
+                "slow_multiplier": 0.9,
+                "max_ice_stacks": 5,
+                "ice_duration": 1.5,
+                "ice_cooldown": 2,
+            },
             "electric": {},
         }
         
@@ -198,11 +208,18 @@ class Player(LivingEntity):
         vel_y = shoot_y * bullet_speed + right_y * side_amount * config.SIDE_DRIFT
 
 
+        elements = self.base_bullet_elements.copy()
+
+        for element, chance in self.extra_bullet_element.items():
+            if random.random() < chance:
+                elements.append(element)
+
         effect_data = {}
-        if self.bullet_element is not None:
-            effect_data = self.element_stats[self.bullet_element].copy()
+        for element in elements:
+            if element in self.element_stats:
+                effect_data[element] = self.element_stats[element].copy()
         factory = SHOT_FACTORIES[self.bullet_type]
-        shoot, rate = factory(self.x, self.y, vel_x, vel_y, self.shoot_distance, self.bullet_element, effect_data)
+        shoot, rate = factory(self.x, self.y, vel_x, vel_y, self.shoot_distance, elements, effect_data)
         
         self.shoot_timer = self.fire_rate * rate
         return shoot
@@ -236,7 +253,7 @@ class Player(LivingEntity):
         text_rect = text.get_rect(center=background_rect.center)
         surface.blit(text, text_rect)
         
-    def draw_player_stats(self, surface, font, x=15, y=300):
+    def draw_player_stats(self, surface, font, x=15, y=200):
         lines = [
         f"Coins: {self.coins}",
         f"Health: {self.health}",
@@ -246,7 +263,10 @@ class Player(LivingEntity):
         f"Shoot distance: {self.shoot_distance}",
         f"Body damage: {self.body_damage}",
         f"Luck: {self.luck}",
-        f"Element: {self.bullet_element}",
+        f"Base elements: {self.base_bullet_elements}",
+        f"Extra elements: {self.extra_bullet_element}",
+        f"Fire lvl: {self.element_stats['fire']['level']}",
+        f"Ice lvl: {self.element_stats['ice']['level']}",
         ]
 
         line_height = 28

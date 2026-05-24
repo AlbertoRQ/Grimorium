@@ -141,23 +141,38 @@ POTION_DATA = {
 
 POWER_DATA = {
     "fire": {
-        "price": 5,
+        "mode": "base",
         "element": "fire",
+        "chance": 1.0,
+        "price": 0,
     },
     "ice": {
-        "price": 5,
+        "mode": "extra",
         "element": "ice",
+        "chance": 0.50,
+        "price": 0,
     },
 }
 
 
 BOOK_DATA = {
     "fire": {
-        "price": 6,
+        "price": 1,
         "effect": {
             "element": "fire",
+            "level": 1,
             "burn_damage": 0.2,
             "burn_duration": 1.0,
+        },
+    },
+    "ice": {
+        "price": 1,
+        "effect": {
+            "element": "ice",
+            "level": 1,
+            "slow_duration": 0.2,
+            "slow_multiplier": -0.1,
+            "ice_duration": 0.2,
         },
     },
     "electric": {
@@ -165,14 +180,6 @@ BOOK_DATA = {
         "effect": {
             "element": "electric",
             "shock_damage": 1.0,
-        },
-    },
-    "ice": {
-        "price": 6,
-        "effect": {
-            "element": "ice",
-            "slow_duration": 0.8,
-            "slow_multiplier": 0.1,
         },
     },
     "fire_electric": {

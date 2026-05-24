@@ -19,7 +19,7 @@ class Bullet(Entity):
         damage,
         rate,
         max_distance,
-        element=None,
+        elements=None,
         effect_data=None,
     ):
         super().__init__(x, y, radius, color)
@@ -31,7 +31,7 @@ class Bullet(Entity):
         self.distance_traveled = 0
         self.destroyed = False
 
-        self.element = element
+        self.elements = elements or []
         self.effect_data = effect_data or {}
 
     def update(self, dt, blockers):
@@ -57,6 +57,12 @@ class Bullet(Entity):
             or self.y > config.SCREEN_HEIGHT + self.radius
             or self.y < -self.radius
         )
+    
+    def draw(self, surface):
+        if "ice" in self.elements:
+            pygame.draw.circle(surface, (120, 200, 255), (int(self.x), int(self.y)), self.radius + 4)
+
+        pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
 
 
 
@@ -89,9 +95,10 @@ ELEMENT_COLORS = {
 
 
 
-def build_bullet(x, y, vel_x, vel_y, max_dist, bullet_type, bullet_element, effect_data):
+def build_bullet(x, y, vel_x, vel_y, max_dist, bullet_type, bullet_elements, effect_data):
     data = BULLET_TYPES[bullet_type]
-    color = ELEMENT_COLORS[bullet_element]
+    main_element = bullet_elements[0] if bullet_elements else None
+    color = ELEMENT_COLORS[main_element]
     return Bullet(
         x=x,
         y=y,
@@ -102,19 +109,19 @@ def build_bullet(x, y, vel_x, vel_y, max_dist, bullet_type, bullet_element, effe
         damage=data["damage"],
         rate=data["rate"],
         max_distance=max_dist,
-        element = bullet_element,
+        elements = bullet_elements,
         effect_data=effect_data,
     )
 
-def create_normal_shot(x, y, vel_x, vel_y, max_dist, element, effect_data):
-    bullet = build_bullet(x, y, vel_x, vel_y, max_dist, "normal", element, effect_data)
+def create_normal_shot(x, y, vel_x, vel_y, max_dist, elements, effect_data):
+    bullet = build_bullet(x, y, vel_x, vel_y, max_dist, "normal", elements, effect_data)
     return [bullet], bullet.rate
 
-def create_gatling_shot(x, y, vel_x, vel_y, max_dist, element, effect_data):
-    bullet = build_bullet(x, y, vel_x, vel_y, max_dist, "gatling", element, effect_data)
+def create_gatling_shot(x, y, vel_x, vel_y, max_dist, elements, effect_data):
+    bullet = build_bullet(x, y, vel_x, vel_y, max_dist, "gatling", elements, effect_data)
     return [bullet], bullet.rate
 
-def create_spread_shot(x, y, vel_x, vel_y, max_dist, element, effect_data):
+def create_spread_shot(x, y, vel_x, vel_y, max_dist, elements, effect_data):
     bullets = []
     base_velocity = pygame.Vector2(vel_x, vel_y)
     
@@ -125,6 +132,8 @@ def create_spread_shot(x, y, vel_x, vel_y, max_dist, element, effect_data):
     for index in range(total):
         angle = (index - middle_index) * angle_step
         rotated_velocity = base_velocity.rotate(angle)
-        bullets.append(build_bullet(x, y, rotated_velocity.x, rotated_velocity.y, max_dist, "spread", element, effect_data))
+        bullets.append(build_bullet(x, y, rotated_velocity.x, rotated_velocity.y, max_dist, "spread", elements, effect_data))
 
     return bullets, bullets[0].rate
+
+
