@@ -182,6 +182,17 @@ class ShopScreen(BaseScreen):
 
     def apply_book_effect(self, book_id):
         effect = config.BOOK_DATA[book_id]["effect"]
+
+        if "combo" in effect:
+            combo = effect["combo"]
+
+            for stat, bonus in effect.items():
+                if stat == "combo":
+                    continue
+
+                self.player.combo_stats[combo][stat] += bonus
+            return
+
         element = effect["element"]
 
         for stat, bonus in effect.items():
@@ -189,7 +200,7 @@ class ShopScreen(BaseScreen):
                 continue
 
             self.player.element_stats[element][stat] += bonus
-
+            
     def buy_power(self, power):
         if self.player.coins < power["price"]:
             return

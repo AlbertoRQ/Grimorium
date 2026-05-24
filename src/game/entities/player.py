@@ -60,6 +60,12 @@ class Player(LivingEntity):
             "electric": {},
         }
         
+        self.combo_stats = {
+            "fire_ice": {
+                "level": 1,
+                "damage_multiplier": 2.0,
+            },
+        }
 
         self.invulnerability_timer = 0
 
@@ -215,6 +221,9 @@ class Player(LivingEntity):
                 elements.append(element)
 
         effect_data = {}
+        effect_data["combos"] = {
+            "fire_ice": self.combo_stats["fire_ice"].copy(),
+        }
         for element in elements:
             if element in self.element_stats:
                 effect_data[element] = self.element_stats[element].copy()
@@ -267,6 +276,7 @@ class Player(LivingEntity):
         f"Extra elements: {self.extra_bullet_element}",
         f"Fire lvl: {self.element_stats['fire']['level']}",
         f"Ice lvl: {self.element_stats['ice']['level']}",
+        f"Fire-Ice lvl: {self.combo_stats['fire_ice']['level']}",
         ]
 
         line_height = 28

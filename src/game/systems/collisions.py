@@ -5,6 +5,8 @@ con el codigo de dibujo o de menus.
 """
 
 import math
+from game.systems.effect_handlers import ELEMENT_EFFECTS
+from game.systems.element_combos import ELEMENTAL_COMBOS
 
 
 def circles_collide(a, b):
@@ -50,42 +52,28 @@ def separate_circles(a, b, blockers):
         b.x, b.y = old_bx, old_by
 
 
-def apply_fire_effect(bullet, enemy):
-    if enemy.status_effects["burn"]["is_burned"] == False:
-        enemy.status_effects["burn"]["is_burned"] = True
-        enemy.status_effects["burn"]["timer"] = bullet.effect_data["fire"]["burn_duration"]
-        enemy.status_effects["burn"]["tick_timer"] = bullet.effect_data["fire"]["burn_tick_timer"]
-        enemy.status_effects["burn"]["damage"] = bullet.effect_data["fire"]["burn_damage"]
+def get_enemy_active_states(enemy):
+    states = []
 
-def apply_ice_effect(bullet, enemy):
-    enemy_status = enemy.status_effects["ice"]
+    if enemy.status_effects["burn"]["is_burned"]:
+        states.append("burn")
 
-    if enemy_status["ice_cooldown"] > 0 or enemy_status["is_ice"]:
-        return
+    if enemy.status_effects["ice"]["is_ice"]:
+        states.append("ice")
 
-    enemy_status["stacks"] += 1
-
-    if enemy_status["stacks"] >= bullet.effect_data["ice"]["max_ice_stacks"]:
-        enemy_status["is_ice"] = True
-        enemy_status["cooldown_value"] = bullet.effect_data["ice"]["ice_cooldown"]
-        enemy_status["ice_timer"] = bullet.effect_data["ice"]["ice_duration"]
-        enemy_status["is_slowed"] = False
-        enemy_status["slow_timer"] = 0
-        return
-
-    enemy_status["is_slowed"] = True
-    enemy_status["slow_timer"] = bullet.effect_data["ice"]["slow_duration"]
-    enemy_status["multiplier"] = bullet.effect_data["ice"]["slow_multiplier"]
-
-def apply_electric_effect(bullet, enemy):
-    enemy.take_damage(2)
+    return states
 
 
-ELEMENT_EFFECTS = {
-    "fire": apply_fire_effect,
-    "ice": apply_ice_effect,
-    "electric": apply_electric_effect,
-}
+def try_apply_combo(bullet, enemy, element):
+    active_states = get_enemy_active_states(enemy)
+
+    for state in active_states:
+        combo_handler = ELEMENTAL_COMBOS.get((element, state))
+        if combo_handler is not None:
+            combo_handler(bullet, enemy)
+            return True
+
+    return False
 
 def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
     bullets_left = []
@@ -101,6 +89,9 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
                 enemy.take_damage(damage)
 
                 for element in bullet.elements:
+                    if try_apply_combo(bullet, enemy, element):
+                        continue
+
                     effect = ELEMENT_EFFECTS.get(element)
                     if effect is not None:
                         effect(bullet, enemy)
@@ -117,7 +108,6 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
             bullets_left.append(bullet)
 
     return bullets_left, enemies_left, points_gained
-
 
 def resolve_enemy_bullets_vs_player(enemy_bullets, player):
     bullets_left = []

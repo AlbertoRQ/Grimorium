@@ -100,64 +100,66 @@ RUN_PATTERN = [
     "shop",
 ]
 
-
+POTION_PRICE = 2
 POTION_DATA = {
     "health": {
         "stat": "health",
         "amount": 1000,
-        "price": 2,
+        "price": POTION_PRICE,
     },
     "speed": {
         "stat": "speed",
         "amount": 25,
-        "price": 2,
+        "price": POTION_PRICE,
     },
     "damage": {
         "stat": "damage",
         "amount": 0.5,
-        "price": 2,
+        "price": POTION_PRICE,
     },
     "body_damage": {
         "stat": "body_damage",
         "amount": 0.5,
-        "price": 2,
+        "price": POTION_PRICE,
     },
     "speed_atack": {
         "stat": "fire_rate",
         "amount": -0.025,
-        "price": 2,
+        "price": POTION_PRICE,
     },
     "luck": {
         "stat": "luck",
         "amount": 1,
-        "price": 2,
+        "price": POTION_PRICE,
     },
     "shoot_distance": {
         "stat": "shoot_distance",
         "amount": 5,
-        "price": 2,
+        "price": POTION_PRICE,
     } 
 }
 
+POWER_PRICE = 10
 POWER_DATA = {
     "fire": {
         "mode": "base",
         "element": "fire",
         "chance": 1.0,
-        "price": 0,
+        "price": POWER_PRICE,
     },
     "ice": {
         "mode": "extra",
         "element": "ice",
         "chance": 0.50,
-        "price": 0,
+        "price": POWER_PRICE,
     },
 }
 
+BOOK_PRICE = 5
 
 BOOK_DATA = {
     "fire": {
-        "price": 1,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "fire",
             "level": 1,
@@ -166,7 +168,7 @@ BOOK_DATA = {
         },
     },
     "ice": {
-        "price": 1,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "ice",
             "level": 1,
@@ -176,30 +178,30 @@ BOOK_DATA = {
         },
     },
     "electric": {
-        "price": 6,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "electric",
             "shock_damage": 1.0,
         },
     },
+    "fire_ice": {
+        "price": BOOK_PRICE,
+        "effect": {
+            "combo": "fire_ice",
+            "level": 1,
+            "damage_multiplier": 0.5,
+        },
+    },
     "fire_electric": {
-        "price": 9,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "fire",
             "burn_damage": 0.3,
             "burn_duration": 1.0,
         },
     },
-    "fire_ice": {
-        "price": 9,
-        "effect": {
-            "element": "fire",
-            "burn_damage": 0.2,
-            "burn_duration": 1.5,
-        },
-    },
     "fire_potion": {
-        "price": 8,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "fire",
             "burn_damage": 0.2,
@@ -207,7 +209,7 @@ BOOK_DATA = {
         },
     },
     "ice_electric": {
-        "price": 9,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "ice",
             "slow_duration": 1.0,
@@ -215,14 +217,14 @@ BOOK_DATA = {
         },
     },
     "potion_electric": {
-        "price": 8,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "electric",
             "shock_damage": 1.5,
         },
     },
     "potion_ice": {
-        "price": 8,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "ice",
             "slow_duration": 1.2,
@@ -230,7 +232,7 @@ BOOK_DATA = {
         },
     },
     "potion": {
-        "price": 5,
+        "price": BOOK_PRICE,
         "effect": {
             "element": "fire",
             "burn_duration": 0.5,
