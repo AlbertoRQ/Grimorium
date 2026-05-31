@@ -3,6 +3,7 @@
 import pygame
 
 from game import config
+from game.ui.fonts import create_font
 
 
 class Button:
@@ -10,7 +11,7 @@ class Button:
         self.rect = pygame.Rect(rect)
         self.text = text
         self.callback = callback
-        self.font = pygame.font.Font(None, 42)
+        self.font = create_font(42)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:

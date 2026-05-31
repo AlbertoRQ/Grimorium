@@ -1,13 +1,12 @@
 """HUD del juego."""
 
-import pygame
-
 from game import config
+from game.ui.fonts import create_font
 
 
 class HUD:
     def __init__(self):
-        self.font = pygame.font.Font(None, config.FONT_SIZE)
+        self.font = create_font(config.FONT_SIZE)
 
     def draw(self, surface, player, score, wave_number):
         lines = [

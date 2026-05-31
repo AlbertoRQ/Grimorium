@@ -5,12 +5,12 @@ import pygame
 import random
 
 from game import config
-from game.entities.entity import LivingEntity
-from game.entities.bullets.bullet import create_normal_shot
 from game.entities.bullets.bullet import create_gatling_shot
+from game.entities.bullets.bullet import create_normal_shot
 from game.entities.bullets.bullet import create_spread_shot
+from game.entities.entity import LivingEntity
 from game.entities.items.item_data import ITEM_DEFINITIONS 
-
+from game.ui.fonts import create_font
 from game.utils.paths import asset_path
 
 SHOT_FACTORIES = {
@@ -44,7 +44,7 @@ class Player(LivingEntity):
         self.extra_bullet_element = {}
         self.element_stats = {
             "fire": {
-                "level": 1,
+                "level": 9,
                 "burn_duration": 3,
                 "burn_damage": 0.5,
                 "burn_tick_timer": 0.5,
@@ -96,6 +96,7 @@ class Player(LivingEntity):
 
         self.sprite = self.get_frame(2, 0)
         self.sprite = pygame.transform.scale(self.sprite, (self.sprite_size_x, self.sprite_size_y))
+        self.label_font = create_font(20)
 
 
 
@@ -262,29 +263,27 @@ class Player(LivingEntity):
         text_rect = text.get_rect(center=background_rect.center)
         surface.blit(text, text_rect)
         
-    def draw_player_stats(self, surface, font, x=15, y=200):
-        lines = [
-        f"Coins: {self.coins}",
-        f"Health: {self.health}",
-        f"Damage: {self.damage}",
-        f"Speed: {self.speed}",
-        f"Fire rate: {self.fire_rate}",
-        f"Shoot distance: {self.shoot_distance}",
-        f"Body damage: {self.body_damage}",
-        f"Luck: {self.luck}",
-        f"Base elements: {self.base_bullet_elements}",
-        f"Extra elements: {self.extra_bullet_element}",
-        f"Fire lvl: {self.element_stats['fire']['level']}",
-        f"Ice lvl: {self.element_stats['ice']['level']}",
-        f"Fire-Ice lvl: {self.combo_stats['fire_ice']['level']}",
-        ]
+    def draw_player_stats(self, surface, font, stat_positions):
+        stat_lines = {
+            "coins": f"{self.coins}",
+            "health": f"{self.health}",
+            "damage": f"{self.damage:.2f}".rstrip("0").rstrip("."),
+            "speed": f"{self.speed:.2f}".rstrip("0").rstrip("."),
+            "fire_rate": f"{self.fire_rate:.2f}".rstrip("0").rstrip("."),
+            "shoot_distance": f"{self.shoot_distance:.2f}".rstrip("0").rstrip("."),
+            "body_damage": f"{self.body_damage:.2f}".rstrip("0").rstrip("."),
+            "luck": f"{self.luck:.2f}".rstrip("0").rstrip("."), 
+        }
 
-        line_height = 28
+        for stat_name, text_value in stat_lines.items():
+            text = font.render(text_value, True, config.HUD_COLOR)
+            cx, cy = stat_positions[stat_name]
 
-        for line in lines:
-            text = font.render(line, True, config.HUD_COLOR)
-            surface.blit(text, (x, y))
-            y += line_height
+            text_rect = text.get_rect()
+            text_rect.x = cx - text_rect.width // 2
+            text_rect.y = cy - text_rect.height // 2
+
+            surface.blit(text, text_rect)
 
     def draw_player_items(self, surface, font):
         lines = [

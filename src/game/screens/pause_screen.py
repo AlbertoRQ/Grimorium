@@ -5,6 +5,7 @@ import pygame
 from game import config
 from game.screens.base_screen import BaseScreen
 from game.ui.button import Button
+from game.ui.fonts import create_font
 
 
 class PauseScreen(BaseScreen):
@@ -13,7 +14,7 @@ class PauseScreen(BaseScreen):
         self.previous_screen = previous_screen
         center_x = config.SCREEN_WIDTH // 2
 
-        self.title_font = pygame.font.Font(None, 82)
+        self.title_font = create_font(82)
         self.buttons = [
             Button((center_x - 120, 300, 240, 60), "Continuar", self._resume),
             Button((center_x - 120, 380, 240, 60), "Menu", self._go_menu),

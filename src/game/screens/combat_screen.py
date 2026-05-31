@@ -3,6 +3,7 @@ import pygame
 from game import config
 from game.rooms.room import Room
 from game.screens.base_screen import BaseScreen
+from game.ui.fonts import create_font
 from game.systems.collisions import (
     resolve_player_bullets_vs_enemies,
     resolve_enemy_bullets_vs_player,
@@ -41,7 +42,7 @@ class CombatScreen(BaseScreen):
         self.bullets = []
         self.enemies = []
         self.enemies_bullets = []
-        self.font = pygame.font.Font(None, 36)
+        self.font = create_font(20)
 
         self.room = Room(room_layout, room_type)
         self.place_player_at_spawn()
@@ -55,6 +56,17 @@ class CombatScreen(BaseScreen):
         self.triggers_spawned = False
 
         self.room_time = 0
+
+        self.stat_positions = {
+            "coins": (210, 110),
+            "health": (210, 120),
+            "damage": (210, 130),
+            "speed": (210, 140),
+            "fire_rate": (210, 150),
+            "shoot_distance": (210, 160),
+            "body_damage": (210, 170),
+            "luck": (210, 180),
+        }
 
     def get_blockers(self, include_walls=True, include_objects=True, include_voids=False):
         return self.room.get_blocking_rects(include_walls, include_objects, include_voids)
@@ -187,7 +199,7 @@ class CombatScreen(BaseScreen):
 
     def draw_hud(self, surface):
 
-        self.player.draw_player_stats(surface, self.font)
+        self.player.draw_player_stats(surface, self.font, self.stat_positions)
         self.player.draw_player_health(surface, self.font)
         self.player.draw_player_items(surface, self.font)
 

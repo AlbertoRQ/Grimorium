@@ -4,14 +4,15 @@ import pygame
 
 from game import config
 from game.screens.base_screen import BaseScreen
+from game.ui.fonts import create_font
 
 
 class GameOverScreen(BaseScreen):
     def __init__(self, game):
         super().__init__(game)
         self.final_score = self.game.player.coins
-        self.title_font = pygame.font.Font(None, 72)
-        self.info_font = pygame.font.Font(None, 36)
+        self.title_font = create_font(72)
+        self.info_font = create_font(36)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:

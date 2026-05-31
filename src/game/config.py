@@ -4,8 +4,8 @@ Es la misma idea que ya tenias en `estructura_simple/ajustes.py`,
 pero puesta dentro de la estructura por carpetas.
 """
 
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
+SCREEN_WIDTH = 1920
+SCREEN_HEIGHT = 1080
 FPS = 240
 WINDOW_TITLE = "Grimorium"
 
@@ -24,13 +24,13 @@ BUTTON_HOVER_COLOR = (85, 100, 120)
 
 PLAYER_RADIUS = 30
 
-PLAYER_SPEED = 400
+PLAYER_SPEED = 444
 PLAYER_MAX_HEALTH = 3
-PLAYER_FIRE_COOLDOWN = 0.4
-PLAYER_DAMAGE = 1
-PLAYER_BODY_DAMAGE = 0
+PLAYER_FIRE_COOLDOWN = 0.45
+PLAYER_DAMAGE = 5
+PLAYER_BODY_DAMAGE = 1.85
 PLAYER_LUCK = 0
-PLAYER_SHOOT_DISTANCE = 350
+PLAYER_SHOOT_DISTANCE = 327
 PLAYER_INVULNERABILITY_TIME = 1
 
 
@@ -72,7 +72,9 @@ TANK_ENEMY_RADIUS = 26
 TANK_ENEMY_SPEED = 90
 TANK_ENEMY_MAX_HEALTH = 3
 SPAWN_INTERVAL = ENEMY_SPAWN_INTERVAL
-FONT_SIZE = 28
+FONT_SIZE = 20
+FONT_FAMILY = "pixel"
+PIXEL_FONT_IMAGE = "3x5light.png"
 
 WIDTH, HEIGHT = 800, 600
 
@@ -100,7 +102,7 @@ RUN_PATTERN = [
     "shop",
 ]
 
-POTION_PRICE = 2
+POTION_PRICE = 0
 POTION_DATA = {
     "health": {
         "stat": "health",
@@ -139,7 +141,7 @@ POTION_DATA = {
     } 
 }
 
-POWER_PRICE = 10
+POWER_PRICE = 1
 POWER_DATA = {
     "fire": {
         "mode": "base",
@@ -155,7 +157,7 @@ POWER_DATA = {
     },
 }
 
-BOOK_PRICE = 5
+BOOK_PRICE = 0
 
 BOOK_DATA = {
     "fire": {
