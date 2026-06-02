@@ -191,7 +191,7 @@ BOOK_DATA = {
         "effect": {
             "combo": "fire_ice",
             "level": 1,
-            "damage_multiplier": 0.5,
+            "damage_multiplier": 1,
         },
     },
     "fire_electric": {

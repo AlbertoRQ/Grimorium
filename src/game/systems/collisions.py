@@ -64,13 +64,13 @@ def get_enemy_active_states(enemy):
     return states
 
 
-def try_apply_combo(bullet, enemy, element):
+def try_apply_combo(bullet, enemy, element, hit_damage):
     active_states = get_enemy_active_states(enemy)
 
     for state in active_states:
         combo_handler = ELEMENTAL_COMBOS.get((element, state))
         if combo_handler is not None:
-            combo_handler(bullet, enemy)
+            combo_handler(bullet, enemy, hit_damage)
             return True
 
     return False
@@ -89,7 +89,7 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
                 enemy.take_damage(damage)
 
                 for element in bullet.elements:
-                    if try_apply_combo(bullet, enemy, element):
+                    if try_apply_combo(bullet, enemy, element, damage):
                         continue
 
                     effect = ELEMENT_EFFECTS.get(element)
