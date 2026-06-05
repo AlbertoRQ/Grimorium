@@ -41,8 +41,7 @@ class ShopScreen(BaseScreen):
         self.player.y = self.offset_y + 124 * self.pixel_scale
         self.player.sprite_size_x = 32 * self.pixel_scale
         self.player.sprite_size_y = 32 * self.pixel_scale  
-        self.player.sprite = self.player.get_frame(2, 0)
-        self.player.sprite = pygame.transform.scale(self.player.sprite, (self.player.sprite_size_x, self.player.sprite_size_y))
+        
 
         self.shop_slots = {
             "potions": [
@@ -320,6 +319,7 @@ class ShopScreen(BaseScreen):
         for power in self.powers_in_shop:
             surface.blit(power["image"], power["rect"])
 
+        self.player.set_fixed_frame(2, 0)
         self.player.draw(surface)
 
         self.player.draw_player_stats(surface, self.info_font, self.scaled_stat_positions)

@@ -38,7 +38,7 @@ class CombatScreen(BaseScreen):
         self.player.sprite_size_x = self.player.radius * 3
         self.player.sprite_size_y = self.player.radius * 3
         self.player.sprite = self.player.get_frame(2, 0)
-        self.sprite = pygame.transform.scale(self.player.sprite, (self.player.sprite_size_x, self.player.sprite_size_y))
+        self.player.sprite = pygame.transform.scale(self.player.sprite, (self.player.sprite_size_x, self.player.sprite_size_y))
         self.bullets = []
         self.enemies = []
         self.enemies_bullets = []
@@ -141,6 +141,7 @@ class CombatScreen(BaseScreen):
         self.bullets, self.enemies, coins_gained = resolve_player_bullets_vs_enemies(
             self.bullets,
             self.enemies,
+            self.get_blockers(True, True, True),
             self.player.damage,
         )
         self.player.coins += coins_gained

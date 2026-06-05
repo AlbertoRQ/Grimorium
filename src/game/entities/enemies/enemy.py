@@ -29,6 +29,10 @@ class Enemy(LivingEntity):
         self.base_speed = self.speed
         self.base_color = color
 
+        self.knockback_x = 0
+        self.knockback_y = 0
+        self.knockback_friction = 8
+
         self.damage_flash_timer = 0
 
         self.status_effects = {
@@ -145,4 +149,29 @@ class Enemy(LivingEntity):
     def update(self, player, dt, blockers, entities):
         self.update_status_effects(dt)
         self.move(player, dt, blockers, entities)
+        self.update_knockback(dt, blockers, entities)
         return []
+    
+    def take_damage(self, damage):
+        if damage > 0:
+            self.health = max(0, self.health - damage)
+            self.damage_flash_timer = 0.15
+
+    def apply_knockback(self, dir_x, dir_y, strength):
+        self.knockback_x += dir_x * strength
+        self.knockback_y += dir_y * strength
+
+    def update_knockback(self, dt, blockers, entities):
+        if abs(self.knockback_x) < 1 and abs(self.knockback_y) < 1:
+            self.knockback_x = 0
+            self.knockback_y = 0
+            return
+
+        move_x = self.knockback_x * dt
+        move_y = self.knockback_y * dt
+
+        self.move_by(move_x, move_y, blockers, entities)
+
+        decay = max(0, 1 - self.knockback_friction * dt)
+        self.knockback_x *= decay
+        self.knockback_y *= decay

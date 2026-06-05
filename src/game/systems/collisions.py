@@ -75,7 +75,7 @@ def try_apply_combo(bullet, enemy, element, hit_damage):
 
     return False
 
-def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
+def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multiplier=1):
     bullets_left = []
     enemies_left = enemies[:]
     points_gained = 0
@@ -87,6 +87,12 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, damage_multiplier=1):
         for enemy in enemies_left[:]:
             if circles_collide(bullet, enemy):
                 enemy.take_damage(damage)
+
+                knockback_strength = 250
+                length = math.hypot(bullet.vel_x, bullet.vel_y)
+
+                if length > 0:
+                    enemy.apply_knockback(bullet.vel_x / length, bullet.vel_y / length, knockback_strength)
 
                 for element in bullet.elements:
                     if try_apply_combo(bullet, enemy, element, damage):

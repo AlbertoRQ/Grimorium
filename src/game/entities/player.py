@@ -80,10 +80,12 @@ class Player(LivingEntity):
         self.friction = 2000
         self.max_speed = config.PLAYER_SPEED
 
-        self.sprite_sheet = pygame.image.load(asset_path("images", "player", "mage2.bmp")).convert()
-        self.sprite_sheet .set_colorkey((35, 97, 72))
+        self.sprite_sheet = pygame.image.load(
+            asset_path("images", "player", "mage_animated.png")
+        ).convert_alpha()
+
         self.frame_cols = 4
-        self.frame_rows = 1
+        self.frame_rows = 4
 
         sheet_width = self.sprite_sheet.get_width()
         sheet_height = self.sprite_sheet.get_height()
@@ -94,10 +96,50 @@ class Player(LivingEntity):
         self.sprite_size_x = self.radius * 3
         self.sprite_size_y = self.radius * 3
 
-        self.sprite = self.get_frame(2, 0)
-        self.sprite = pygame.transform.scale(self.sprite, (self.sprite_size_x, self.sprite_size_y))
-        self.label_font = create_font(20)
+        self.facing = "down"
+        self.is_moving = False
+        self.animation_frame = 0
+        self.animation_timer = 0
+        self.animation_speed = 0.25
 
+        self.direction_rows = {
+            "right": 0,
+            "left": 1,
+            "down": 2,
+            "up": 3,
+        }
+
+
+    def update_sprite(self):
+        row = self.direction_rows[self.facing]
+        frame = self.animation_frame
+
+        sprite = self.get_frame(row, frame)
+        self.sprite = pygame.transform.scale(
+            sprite,
+            (self.sprite_size_x, self.sprite_size_y),
+        )
+
+    def update_animation(self, dt):
+        if self.is_moving:
+            self.animation_timer += dt
+
+            if self.animation_timer >= self.animation_speed:
+                self.animation_timer = 0
+                self.animation_frame = (self.animation_frame + 1) % 4
+        else:
+            self.animation_frame = 0
+            self.animation_timer = 0
+
+        self.update_sprite()
+
+
+    def set_fixed_frame(self, row, col):
+        sprite = self.get_frame(row, col)
+        self.sprite = pygame.transform.scale(
+            sprite,
+            (self.sprite_size_x, self.sprite_size_y),
+        )
 
 
     def move(self, keys, dt, blockers, entities):
@@ -106,18 +148,27 @@ class Player(LivingEntity):
 
         if keys[pygame.K_d]:
             move_x += 1
-            self.sprite = self.get_frame(1, 0)
         if keys[pygame.K_a]:
             move_x -= 1
-            self.sprite = self.get_frame(0, 0)
         if keys[pygame.K_w]:
             move_y -= 1
-            self.sprite = self.get_frame(3, 0)
         if keys[pygame.K_s]:
             move_y += 1
-            self.sprite = self.get_frame(2, 0)
+
+        if abs(move_x) > abs(move_y):
+            if move_x > 0:
+                self.facing = "right"
+            elif move_x < 0:
+                self.facing = "left"
+        else:
+            if move_y > 0:
+                self.facing = "down"
+            elif move_y < 0:
+                self.facing = "up"
 
         length = math.hypot(move_x, move_y)
+        self.is_moving = length > 0
+
         if length > 0:
             move_x /= length
             move_y /= length
@@ -157,6 +208,8 @@ class Player(LivingEntity):
         
         if self.invulnerability_timer <= 0:
             self.color = config.PLAYER_COLOR
+
+        self.update_animation(dt)
 
     def take_damage(self, damage):
         if self.invulnerability_timer > 0:
@@ -318,7 +371,7 @@ class Player(LivingEntity):
         elif effect["type"] == "set_shot":
             self.bullet_type = effect["value"]
 
-    def get_frame(self, col, row):
+    def get_frame(self, row, col):
         frame_rect = pygame.Rect(
             col * self.frame_width,
             row * self.frame_height,
@@ -328,5 +381,11 @@ class Player(LivingEntity):
         return self.sprite_sheet.subsurface(frame_rect).copy()
 
     def draw(self, surface):
+        if self.invulnerability_timer > 0:
+            blink_speed = 0.12
+
+            if int(self.invulnerability_timer / blink_speed) % 2 == 0:
+                return
+
         sprite_rect = self.sprite.get_rect(center=(int(self.x), int(self.y)))
         surface.blit(self.sprite, sprite_rect)

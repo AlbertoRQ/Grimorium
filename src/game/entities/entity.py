@@ -3,6 +3,7 @@
 import pygame
 
 from game.systems.collisions import circles_collide
+from game.utils.paths import asset_path
 
 
 class Entity:
@@ -11,6 +12,15 @@ class Entity:
         self.y = y
         self.radius = radius
         self.color = color
+
+        self.sprite_sheet = None
+        self.sprite = None
+        self.frame_cols = 1
+        self.frame_rows = 1
+        self.frame_width = 0
+        self.frame_height = 0
+        self.sprite_size_x = self.radius * 3
+        self.sprite_size_y = self.radius * 3
 
     def circle_collides_with_rect(self, rect):
         closest_x = max(rect.left, min(self.x, rect.right))
@@ -51,8 +61,12 @@ class Entity:
 
 
     def draw(self, surface):
-        pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
+        if self.sprite is None:
+            pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
+            return
 
+        sprite_rect = self.sprite.get_rect(center=(int(self.x), int(self.y)))
+        surface.blit(self.sprite, sprite_rect)
 
 class LivingEntity(Entity):
     def __init__(self, x, y, radius, color, base_color, max_health):
@@ -67,3 +81,44 @@ class LivingEntity(Entity):
 
     def is_dead(self):
         return self.health <= 0
+    
+
+    def setup_sprite(self, image_folder, image_name, frame_cols=1, frame_rows=1, colorkey=None, scale=3):
+        self.sprite_sheet = pygame.image.load(
+            asset_path("images", image_folder, image_name)
+        ).convert()
+
+        if colorkey is not None:
+            self.sprite_sheet.set_colorkey(colorkey)
+
+        self.frame_cols = frame_cols
+        self.frame_rows = frame_rows
+
+        sheet_width = self.sprite_sheet.get_width()
+        sheet_height = self.sprite_sheet.get_height()
+
+        self.frame_width = sheet_width // self.frame_cols
+        self.frame_height = sheet_height // self.frame_rows
+
+        self.sprite_size_x = self.radius * scale
+        self.sprite_size_y = self.radius * scale
+
+        self.set_sprite_frame(0, 0)
+
+
+    def get_frame(self, col, row):
+        frame_rect = pygame.Rect(
+            col * self.frame_width,
+            row * self.frame_height,
+            self.frame_width,
+            self.frame_height,
+        )
+        return self.sprite_sheet.subsurface(frame_rect).copy()
+
+
+    def set_sprite_frame(self, col, row):
+        self.sprite = self.get_frame(col, row)
+        self.sprite = pygame.transform.scale(
+            self.sprite,
+            (self.sprite_size_x, self.sprite_size_y),
+        )
