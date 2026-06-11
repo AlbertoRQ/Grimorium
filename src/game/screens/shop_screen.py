@@ -39,8 +39,6 @@ class ShopScreen(BaseScreen):
 
         self.player.x = self.offset_x + 205 * self.pixel_scale
         self.player.y = self.offset_y + 124 * self.pixel_scale
-        self.player.sprite_size_x = 32 * self.pixel_scale
-        self.player.sprite_size_y = 32 * self.pixel_scale  
         
 
         self.shop_slots = {
@@ -319,8 +317,9 @@ class ShopScreen(BaseScreen):
         for power in self.powers_in_shop:
             surface.blit(power["image"], power["rect"])
 
-        self.player.set_fixed_frame(2, 0)
-        self.player.draw(surface)
+        self.player.visual.set_fixed_frame(0, 2)
+        self.player.visual.set_size(32 * self.pixel_scale, 32 * self.pixel_scale)
+        self.player.visual.draw(surface, self.player.x, self.player.y)
 
         self.player.draw_player_stats(surface, self.info_font, self.scaled_stat_positions)
 

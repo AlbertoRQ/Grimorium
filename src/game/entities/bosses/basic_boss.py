@@ -4,6 +4,7 @@ import pygame
 
 from game import config
 from game.entities.enemies.enemy import Enemy
+from game.visuals.animated_visual import AnimatedVisual
 
 
 class BasicBoss(Enemy):
@@ -23,13 +24,29 @@ class BasicBoss(Enemy):
         self.regen = config.BOSS_REGEN
         self.direction_x = 1
 
-        self.setup_sprite(
-            image_folder="enemies",
-            image_name="rat.bmp",
+        self.visual = AnimatedVisual(
+            image_folder="enemies/rat",
+            image_name="rat_animated.png",
             frame_cols=4,
-            frame_rows=1,
-            colorkey=(84, 206, 76),
-            scale=3,
+            frame_rows=4,
+            scale_x=self.radius * 3,
+            scale_y=self.radius * 3,
+            use_alpha=True,
+            initial_state="idle",
+            initial_facing="down",
+            animations={
+                "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+            },
         )
 
     def draw_boss_health_bar(self, surface, font):
@@ -62,49 +79,26 @@ class BasicBoss(Enemy):
 
     def move(self, player, dt, blockers, entities):
         old_x = self.x
+        old_y = self.y
 
         move_x = self.direction_x * self.speed * dt
+        move_y = 0
+        
         self.move_by(move_x, 0, blockers, entities)
-
-        if self.direction_x > 0:
-            self.set_sprite_frame(1, 0)
-        else:
-            self.set_sprite_frame(0, 0)
 
         if self.x == old_x:
             self.direction_x *= -1
+
+        real_move_x = self.x - old_x
+        real_move_y = self.y - old_y
+
+        self.update_visual_from_movement(real_move_x, real_move_y)
+        
+
 
     def update(self, player, dt, blockers, entities):
         super().update(player, dt, blockers, entities)
 
 
     def draw(self, surface):
-        if self.sprite is None:
-            pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
-            return
-
-        sprite_to_draw = self.sprite
-        base_color = getattr(self, "base_color", self.color)
-
-        if self.color != base_color:
-            mask = pygame.mask.from_surface(self.sprite)
-            color_overlay = mask.to_surface(
-                setcolor=(*self.color, 120),
-                unsetcolor=(0, 0, 0, 0),
-            ).convert_alpha()
-
-            sprite_to_draw = self.sprite.copy()
-            sprite_to_draw.blit(color_overlay, (0, 0))
-
-        if getattr(self, "damage_flash_timer", 0) > 0:
-            mask = pygame.mask.from_surface(sprite_to_draw)
-            damage_overlay = mask.to_surface(
-                setcolor=(120, 0, 0, 180),
-                unsetcolor=(0, 0, 0, 0),
-            ).convert_alpha()
-
-            sprite_to_draw = sprite_to_draw.copy()
-            sprite_to_draw.blit(damage_overlay, (0, 0))
-
-        sprite_rect = sprite_to_draw.get_rect(center=(int(self.x), int(self.y)))
-        surface.blit(sprite_to_draw, sprite_rect)
+        super().draw(surface)

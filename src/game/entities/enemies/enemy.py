@@ -58,6 +58,8 @@ class Enemy(LivingEntity):
             },
         }
 
+        self.visual = None
+
     def move(self, player, dt, blockers, entities):
         diff_x = player.x - self.x
         diff_y = player.y - self.y
@@ -77,10 +79,54 @@ class Enemy(LivingEntity):
         #self.update_shock(dt)
         #self.update_visual_effects(dt)
 
-    
+    def update_visual_effects(self):
+        ice = self.status_effects["ice"]
+        burn = self.status_effects["burn"]
+
+        if self.visual is None:
+            if ice["ice_timer"] > 0:
+                r, g, b = self.base_color
+                self.color = (
+                    min(255, int(r * 0.3 + 100)),
+                    min(255, int(g * 0.3 + 140)),
+                    min(255, int(b * 0.8 + 180)),
+                )
+            elif self.damage_flash_timer > 0:
+                r, g, b = self.base_color
+                self.color = (int(r * 0.5), int(g * 0.5), int(b * 0.5))
+            elif ice["slow_timer"] > 0:
+                r, g, b = self.base_color
+                self.color = (
+                    int(r * 0.6),
+                    int(g * 0.8),
+                    min(255, int(b * 1.2)),
+                )
+            elif burn["timer"] > 0:
+                r, g, b = self.base_color
+                self.color = (
+                    int(r * 0.5),
+                    int(g * 0.5),
+                    int(b * 0.5),
+                )
+            else:
+                self.color = self.base_color
+
+            return
+
+        if ice["ice_timer"] > 0:
+            self.visual.set_tint((200, 230, 255, 180))
+        elif self.damage_flash_timer > 0:
+            self.visual.set_tint((120, 0, 0, 180))
+        elif ice["slow_timer"] > 0:
+            self.visual.set_tint((80, 140, 220, 140))
+        elif burn["timer"] > 0:
+            self.visual.set_tint((80, 30, 30, 140))
+        else:
+            self.visual.clear_tint()
+
     def update_burn(self, dt):
         burn = self.status_effects["burn"]
-        
+
         if burn["timer"] > 0:
             burn["timer"] -= dt
             burn["tick_timer"] -= dt
@@ -91,14 +137,12 @@ class Enemy(LivingEntity):
                 burn["tick_timer"] = 1
         else:
             burn["is_burned"] = False
+            burn["timer"] = 0
 
         if self.damage_flash_timer > 0:
             self.damage_flash_timer -= dt
-            r, g, b = self.base_color
-            self.color = (int(r * 0.5), int(g * 0.5), int(b * 0.5))
-        else:
-            self.color = self.base_color
-
+            if self.damage_flash_timer < 0:
+                self.damage_flash_timer = 0
 
     def update_ice(self, dt):
         ice = self.status_effects["ice"]
@@ -112,13 +156,6 @@ class Enemy(LivingEntity):
             ice["ice_timer"] -= dt
             self.speed = 0
 
-            r, g, b = self.base_color
-            self.color = (
-                min(255, int(r * 0.3 + 100)),
-                min(255, int(g * 0.3 + 140)),
-                min(255, int(b * 0.8 + 180)),
-            )
-
             if ice["ice_timer"] <= 0:
                 ice["is_ice"] = False
                 ice["is_slowed"] = False
@@ -127,7 +164,6 @@ class Enemy(LivingEntity):
                 ice["ice_timer"] = 0
                 ice["ice_cooldown"] = ice["cooldown_value"]
                 self.speed = self.base_speed
-                self.color = self.base_color
 
             return
 
@@ -135,12 +171,11 @@ class Enemy(LivingEntity):
             ice["slow_timer"] -= dt
             self.speed = self.base_speed * ice["multiplier"]
 
-            r, g, b = self.base_color
-            self.color = (
-                int(r * 0.6),
-                int(g * 0.8),
-                min(255, int(b * 1.2)),
-            )
+            if ice["slow_timer"] <= 0:
+                ice["slow_timer"] = 0
+                ice["is_slowed"] = False
+                ice["stacks"] = 0
+                self.speed = self.base_speed
         else:
             ice["is_slowed"] = False
             ice["stacks"] = 0
@@ -149,6 +184,11 @@ class Enemy(LivingEntity):
     def update(self, player, dt, blockers, entities):
         self.update_status_effects(dt)
         self.move(player, dt, blockers, entities)
+
+        if self.visual is not None:
+            self.visual.update(dt)
+
+        self.update_visual_effects()
         self.update_knockback(dt, blockers, entities)
         return []
     
@@ -175,3 +215,31 @@ class Enemy(LivingEntity):
         decay = max(0, 1 - self.knockback_friction * dt)
         self.knockback_x *= decay
         self.knockback_y *= decay
+
+
+    def update_visual_from_movement(self, move_x, move_y):
+        if abs(move_x) > abs(move_y):
+            if move_x > 0:
+                self.visual.set_facing("right")
+            elif move_x < 0:
+                self.visual.set_facing("left")
+        else:
+            if move_y > 0:
+                self.visual.set_facing("down")
+            elif move_y < 0:
+                self.visual.set_facing("up")
+
+        if move_x != 0 or move_y != 0:
+            self.visual.set_state("walk")
+        else:
+            self.visual.set_state("idle")
+
+
+    def draw(self, surface):
+        sprite = self.visual.get_surface()
+
+        if sprite is None:
+            return
+
+        rect = sprite.get_rect(center=(int(self.x), int(self.y)))
+        surface.blit(sprite, rect)

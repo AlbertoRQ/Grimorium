@@ -6,6 +6,7 @@ import pygame
 
 from game import config
 from game.entities.enemies.enemy import Enemy
+from game.visuals.animated_visual import AnimatedVisual
 
 
 class ChaserEnemy(Enemy):
@@ -28,17 +29,30 @@ class ChaserEnemy(Enemy):
         self.random_move_timer = 0
         self.random_move_interval = 1.5
 
-        self.setup_sprite(
-            image_folder="enemies",
-            image_name="rat.bmp",
+        self.visual = AnimatedVisual(
+            image_folder="enemies/rat",
+            image_name="rat_animated.png",
             frame_cols=4,
-            frame_rows=1,
-            colorkey=(84, 206, 76),
-            scale=5,
+            frame_rows=4,
+            scale_x=self.radius * 5,
+            scale_y=self.radius * 5,
+            use_alpha=True,
+            initial_state="idle",
+            initial_facing="down",
+            animations={
+                "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+            },
         )
-
-        self.set_sprite_frame(2, 0)
-
 
     def choose_random_direction(self):
         self.random_dir_x = random.uniform(-1, 1)
@@ -72,37 +86,12 @@ class ChaserEnemy(Enemy):
             move_x = self.random_dir_x * self.speed * dt
             move_y = self.random_dir_y * self.speed * dt
 
-        if abs(move_x) > abs(move_y):
-            if move_x > 0:
-                self.set_sprite_frame(1, 0)  # derecha
-            else:
-                self.set_sprite_frame(0, 0)  # izquierda
-        else:
-            if move_y > 0:
-                self.set_sprite_frame(2, 0)  # abajo
-            else:
-                self.set_sprite_frame(3, 0)  # arriba
-
+        old_x = self.x
+        old_y = self.y
 
         self.move_by(move_x, move_y, blockers, entities)
 
+        real_move_x = self.x - old_x
+        real_move_y = self.y - old_y
 
-    def draw(self, surface):
-        if self.sprite is None:
-            super().draw(surface)
-            return
-
-        sprite_to_draw = self.sprite
-
-        if self.damage_flash_timer > 0:
-            mask = pygame.mask.from_surface(self.sprite)
-            red_overlay = mask.to_surface(
-                setcolor=(120, 0, 0, 180),
-                unsetcolor=(0, 0, 0, 0),
-            ).convert_alpha()
-
-            sprite_to_draw = self.sprite.copy()
-            sprite_to_draw.blit(red_overlay, (0, 0))
-
-        sprite_rect = sprite_to_draw.get_rect(center=(int(self.x), int(self.y)))
-        surface.blit(sprite_to_draw, sprite_rect)
+        self.update_visual_from_movement(real_move_x, real_move_y)

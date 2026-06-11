@@ -35,10 +35,11 @@ class CombatScreen(BaseScreen):
         super().__init__(game)
 
         self.player = self.game.player
-        self.player.sprite_size_x = self.player.radius * 3
-        self.player.sprite_size_y = self.player.radius * 3
-        self.player.sprite = self.player.get_frame(2, 0)
-        self.player.sprite = pygame.transform.scale(self.player.sprite, (self.player.sprite_size_x, self.player.sprite_size_y))
+        self.player.visual.set_size(self.player.radius * 3, self.player.radius * 3)
+        self.player.visual.clear_fixed_frame()
+        self.player.visual.set_locked(False)
+        self.player.visual.set_state("idle", reset=True)
+        self.player.visual.set_facing("down")
         self.bullets = []
         self.enemies = []
         self.enemies_bullets = []

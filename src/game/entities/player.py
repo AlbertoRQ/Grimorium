@@ -10,8 +10,7 @@ from game.entities.bullets.bullet import create_normal_shot
 from game.entities.bullets.bullet import create_spread_shot
 from game.entities.entity import LivingEntity
 from game.entities.items.item_data import ITEM_DEFINITIONS 
-from game.ui.fonts import create_font
-from game.utils.paths import asset_path
+from game.visuals.animated_visual import AnimatedVisual
 
 SHOT_FACTORIES = {
     "normal": create_normal_shot,
@@ -80,67 +79,30 @@ class Player(LivingEntity):
         self.friction = 2000
         self.max_speed = config.PLAYER_SPEED
 
-        self.sprite_sheet = pygame.image.load(
-            asset_path("images", "player", "mage_animated.png")
-        ).convert_alpha()
+        self.visual = AnimatedVisual(
+            image_folder="player",
+            image_name="mage_animated.png",
+            frame_cols=4,
+            frame_rows=4,
+            scale_x=self.radius * 3,
+            scale_y=self.radius * 3,
+            use_alpha=True,
+            initial_state="idle",
+            initial_facing="down",
+            animations={
+                "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
 
-        self.frame_cols = 4
-        self.frame_rows = 4
+                "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
 
-        sheet_width = self.sprite_sheet.get_width()
-        sheet_height = self.sprite_sheet.get_height()
+                "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
 
-        self.frame_width = sheet_width // self.frame_cols
-        self.frame_height = sheet_height // self.frame_rows
-
-        self.sprite_size_x = self.radius * 3
-        self.sprite_size_y = self.radius * 3
-
-        self.facing = "down"
-        self.is_moving = False
-        self.animation_frame = 0
-        self.animation_timer = 0
-        self.animation_speed = 0.25
-
-        self.direction_rows = {
-            "right": 0,
-            "left": 1,
-            "down": 2,
-            "up": 3,
-        }
-
-
-    def update_sprite(self):
-        row = self.direction_rows[self.facing]
-        frame = self.animation_frame
-
-        sprite = self.get_frame(row, frame)
-        self.sprite = pygame.transform.scale(
-            sprite,
-            (self.sprite_size_x, self.sprite_size_y),
+                "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+            },
         )
-
-    def update_animation(self, dt):
-        if self.is_moving:
-            self.animation_timer += dt
-
-            if self.animation_timer >= self.animation_speed:
-                self.animation_timer = 0
-                self.animation_frame = (self.animation_frame + 1) % 4
-        else:
-            self.animation_frame = 0
-            self.animation_timer = 0
-
-        self.update_sprite()
-
-
-    def set_fixed_frame(self, row, col):
-        sprite = self.get_frame(row, col)
-        self.sprite = pygame.transform.scale(
-            sprite,
-            (self.sprite_size_x, self.sprite_size_y),
-        )
-
 
     def move(self, keys, dt, blockers, entities):
         move_x = 0
@@ -157,21 +119,23 @@ class Player(LivingEntity):
 
         if abs(move_x) > abs(move_y):
             if move_x > 0:
-                self.facing = "right"
+                self.visual.set_facing("right")
             elif move_x < 0:
-                self.facing = "left"
+                self.visual.set_facing("left")
         else:
             if move_y > 0:
-                self.facing = "down"
+                self.visual.set_facing("down")
             elif move_y < 0:
-                self.facing = "up"
+                self.visual.set_facing("up")
 
         length = math.hypot(move_x, move_y)
-        self.is_moving = length > 0
 
         if length > 0:
+            self.visual.set_state("walk")
             move_x /= length
             move_y /= length
+        else:
+            self.visual.set_state("idle")
 
         self.velocity_x += move_x * self.acceleration * dt
         self.velocity_y += move_y * self.acceleration * dt
@@ -196,7 +160,6 @@ class Player(LivingEntity):
 
         self.move_by(self.velocity_x * dt, self.velocity_y * dt, blockers, entities)
         
-        self.sprite = pygame.transform.scale(self.sprite, (self.sprite_size_x, self.sprite_size_y))
 
     def update(self, dt):
         if self.shoot_timer > 0:
@@ -209,7 +172,7 @@ class Player(LivingEntity):
         if self.invulnerability_timer <= 0:
             self.color = config.PLAYER_COLOR
 
-        self.update_animation(dt)
+        self.visual.update(dt)
 
     def take_damage(self, damage):
         if self.invulnerability_timer > 0:
@@ -371,21 +334,11 @@ class Player(LivingEntity):
         elif effect["type"] == "set_shot":
             self.bullet_type = effect["value"]
 
-    def get_frame(self, row, col):
-        frame_rect = pygame.Rect(
-            col * self.frame_width,
-            row * self.frame_height,
-            self.frame_width,
-            self.frame_height,
-        )
-        return self.sprite_sheet.subsurface(frame_rect).copy()
-
+    
     def draw(self, surface):
         if self.invulnerability_timer > 0:
             blink_speed = 0.12
-
             if int(self.invulnerability_timer / blink_speed) % 2 == 0:
                 return
 
-        sprite_rect = self.sprite.get_rect(center=(int(self.x), int(self.y)))
-        surface.blit(self.sprite, sprite_rect)
+        self.visual.draw(surface, self.x, self.y)

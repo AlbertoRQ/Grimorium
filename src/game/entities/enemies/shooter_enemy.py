@@ -5,6 +5,7 @@ import math
 from game import config
 from game.entities.bullets.bullet import create_normal_shot
 from game.entities.enemies.enemy import Enemy
+from game.visuals.animated_visual import AnimatedVisual
 
 
 class ShooterEnemy(Enemy):
@@ -25,12 +26,39 @@ class ShooterEnemy(Enemy):
         self.shoot_distance = config.SHOOTER_ENEMY_SHOOT_DISTANCE
         self.bullet_element = None
 
-    def move(self, player, dt, blockers, circle):
+        self.visual = AnimatedVisual(
+            image_folder="enemies/rat",
+            image_name="rat_animated.png",
+            frame_cols=4,
+            frame_rows=4,
+            scale_x=self.radius * 5,
+            scale_y=self.radius * 5,
+            use_alpha=True,
+            initial_state="idle",
+            initial_facing="down",
+            animations={
+                "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+
+                "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
+                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+            },
+        )
+
+
+    def move(self, player, dt, blockers, entities):
         diff_x = player.x - self.x
         diff_y = player.y - self.y
         distance = math.hypot(diff_x, diff_y)
 
         if distance <= 0:
+            self.visual.set_state("idle")
             return
 
         direction = 0
@@ -41,12 +69,21 @@ class ShooterEnemy(Enemy):
             direction = -1
 
         if direction == 0:
+            self.visual.set_state("idle")
             return
 
         move_x = direction * (diff_x / distance) * self.speed * dt
         move_y = direction * (diff_y / distance) * self.speed * dt
 
-        self.move_by(move_x, move_y, blockers, circle)
+        old_x = self.x
+        old_y = self.y
+
+        self.move_by(move_x, move_y, blockers, entities)
+
+        real_move_x = self.x - old_x
+        real_move_y = self.y - old_y
+
+        self.update_visual_from_movement(real_move_x, real_move_y)
 
     def shoot(self, player):
         diff_x = player.x - self.x

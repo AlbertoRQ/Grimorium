@@ -61,12 +61,10 @@ class Entity:
 
 
     def draw(self, surface):
-        if self.sprite is None:
+        if self.visual is not None:
+            self.visual.draw(surface, self.x, self.y)
+        else:
             pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
-            return
-
-        sprite_rect = self.sprite.get_rect(center=(int(self.x), int(self.y)))
-        surface.blit(self.sprite, sprite_rect)
 
 class LivingEntity(Entity):
     def __init__(self, x, y, radius, color, base_color, max_health):
