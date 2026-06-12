@@ -10,11 +10,15 @@ from game.visuals.animated_visual import AnimatedVisual
 
 
 class ChaserEnemy(Enemy):
-    def __init__(self, position):
+    def __init__(self, position, level=1):
+        health = int(config.ENEMY_MAX_HEALTH * (1.12 ** (level-1)))
+        #damage = int(config.ENEMY_DAMAGE * (1.08 ** (level - 1)))
+        #speed = config.ENEMY_SPEED * (1.02 * (level - 1))
+
         super().__init__(
             position=position,
             speed=config.ENEMY_SPEED,
-            max_health=config.ENEMY_MAX_HEALTH,
+            max_health=health,
             radius=config.ENEMY_RADIUS,
             color=config.ENEMY_COLOR,
             damage=config.ENEMY_DAMAGE,

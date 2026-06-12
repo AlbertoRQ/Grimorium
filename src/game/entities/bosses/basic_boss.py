@@ -8,20 +8,22 @@ from game.visuals.animated_visual import AnimatedVisual
 
 
 class BasicBoss(Enemy):
-    def __init__(self):
+    def __init__(self, level=1):
+        health = int(config.BOSS_MAX_HEALTH * (1.15 ** (level - 1)))
+        regen = config.BOSS_REGEN * (1.05 ** (level - 1))
+
         super().__init__(
-            (config.SCREEN_WIDTH / 2,config.SCREEN_HEIGHT / 2),
+            (config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2),
             200,
-            config.BOSS_MAX_HEALTH,
+            health,
             config.BOSS_RADIUS,
             config.ENEMY_COLOR,
             config.BOSS_DAMAGE,
             100
-            
         )
 
         self.body_damage = config.BOSS_BODY_DAMAGE
-        self.regen = config.BOSS_REGEN
+        self.regen = regen
         self.direction_x = 1
 
         self.visual = AnimatedVisual(

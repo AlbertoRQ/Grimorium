@@ -9,16 +9,21 @@ from game.visuals.animated_visual import AnimatedVisual
 
 
 class ShooterEnemy(Enemy):
-    def __init__(self, position):
+    def __init__(self, position, level=1):
+        health = int(config.ENEMY_MAX_HEALTH * (1.12 ** (level-1)))
+        #damage = int(config.ENEMY_DAMAGE * (1.08 ** (level - 1)))
+        #speed = config.ENEMY_SPEED * (1.02 * (level - 1))
+
         super().__init__(
             position=position,
-            speed=config.SHOOTER_ENEMY_SPEED,
-            max_health=config.ENEMY_MAX_HEALTH,
-            radius=config.SHOOTER_ENEMY_RADIUS,
-            color=config.SHOOTER_ENEMY_COLOR,
+            speed=config.ENEMY_SPEED,
+            max_health=health,
+            radius=config.ENEMY_RADIUS,
+            color=config.ENEMY_COLOR,
             damage=config.ENEMY_DAMAGE,
-            score_value=20,
+            score_value=10,
         )
+
         self.shoot_cooldown = config.SHOOTER_ENEMY_FIRE_COOLDOWN
         self.bullet_speed = config.SHOOTER_ENEMY_BULLET_SPEED
         self.shoot_timer = 0.0

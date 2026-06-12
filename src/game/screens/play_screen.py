@@ -17,4 +17,4 @@ class PlayScreen(CombatScreen):
     def spawn_room_enemies(self):
         for enemy_pos in self.room.enemy_spawns:
             enemy_class = choice(ENEMY_TYPES)
-            self.enemies.append(enemy_class(enemy_pos))
+            self.enemies.append(enemy_class(enemy_pos, self.game.room_level))

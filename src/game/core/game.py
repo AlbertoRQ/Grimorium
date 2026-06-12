@@ -40,6 +40,8 @@ class Game:
         self.max_cycles = 3
         self.player = Player()
 
+        self.room_level = 1
+
         # La primera pantalla sera el menu.
         self.screen_manager.set_screen(MenuScreen(self))
 
@@ -66,6 +68,9 @@ class Game:
         if self.mode == "boss_test":
                 self.screen_manager.set_screen(MenuScreen(self))
                 return
+        
+        if self.current_step == "normal":
+            self.room_level += 1
 
         if self.current_step == "boss":
             self.run_cycles += 1
@@ -81,6 +86,7 @@ class Game:
         self.run_step = 0
         self.current_step = None
         self.run_cycles = 0
+        self.room_level = 1
         self.player = Player()
 
         self.go_to_next_run_screen()

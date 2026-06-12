@@ -43,7 +43,7 @@ class Player(LivingEntity):
         self.extra_bullet_element = {}
         self.element_stats = {
             "fire": {
-                "level": 9,
+                "level": 1,
                 "burn_duration": 3,
                 "burn_damage": 0.5,
                 "burn_tick_timer": 0.5,

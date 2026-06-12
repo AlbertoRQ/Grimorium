@@ -271,13 +271,16 @@ class CombatScreen(BaseScreen):
                 return
             
     def reward_end_of_room(self):
-        bonus = self.player.coins // 10
+        max_bonus = 3
+        bonus = min(self.player.coins // 15, max_bonus)
+
         self.player.coins += bonus
-        self.player.coins += int(self.player.health)
+        self.player.coins += int(self.player.health) // 2
+
         time_coins = 5
-        time_coins -= int(self.room_time/time_coins)
+        time_coins -= int(self.room_time / time_coins)
         if time_coins > 0:
-            self.player.coins += time_coins         
+            self.player.coins += time_coins       
 
     def update(self, dt):
         self.update_player(dt)
