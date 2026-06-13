@@ -27,7 +27,9 @@ class Game:
         pygame.init()
         pygame.font.init()
 
-        self.screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+        self.screen = None
+        self.is_fullscreen = False
+        self.apply_display_mode()
         pygame.display.set_caption(config.WINDOW_TITLE)
 
         self.clock = pygame.time.Clock()
@@ -44,6 +46,10 @@ class Game:
 
         # La primera pantalla sera el menu.
         self.screen_manager.set_screen(MenuScreen(self))
+
+        self.debug_font = pygame.font.Font(None, 24)
+        self.show_fps = True       
+
 
     def go_to_next_run_screen(self):
         step = RUN_PATTERN[self.run_step]
@@ -97,14 +103,8 @@ class Game:
 
         self.screen_manager.set_screen(BossScreen(self))
 
-    def run(self):
-        """Bucle principal.
 
-        Pasos de cada vuelta:
-        1. leer eventos
-        2. actualizar la pantalla actual
-        3. dibujar la pantalla actual
-        """
+    def run(self):
         while self.running:
             dt = self.clock.tick(config.FPS) / 1000
 
@@ -117,8 +117,67 @@ class Game:
 
             self.screen_manager.update(dt)
 
-            self.screen.fill(config.BACKGROUND_COLOR)
-            self.screen_manager.draw(self.screen)
+            current_screen = self.screen_manager.current_screen
+            self.update_render_metrics(current_screen)
+            virtual_surface = current_screen.virtual_surface
+
+            virtual_surface.fill(config.BACKGROUND_COLOR)
+            current_screen.draw(virtual_surface)
+
+            scaled_surface = pygame.transform.scale(
+                virtual_surface,
+                (self.render_width, self.render_height)
+            )
+
+            self.screen.fill((0, 0, 0))
+            self.screen.blit(
+                scaled_surface,
+                (self.render_offset_x, self.render_offset_y)
+            )
+
+            if self.show_fps:
+                fps = self.clock.get_fps()
+                ms = 1000 / fps if fps > 0 else 0
+                fps_text = self.debug_font.render(f"FPS: {fps:.1f}  MS: {ms:.2f}", True, (255, 255, 0))
+                self.screen.blit(fps_text, (20, 20))
+
             pygame.display.flip()
 
         pygame.quit()
+
+
+    def update_render_metrics(self, current_screen):
+        vw, vh = current_screen.get_virtual_size()
+
+        screen_width = self.screen.get_width()
+        screen_height = self.screen.get_height()
+
+        self.render_scale = min(
+            screen_width // vw,
+            screen_height // vh,
+        )
+
+        self.render_width = vw * self.render_scale
+        self.render_height = vh * self.render_scale
+
+        self.render_offset_x = (screen_width - self.render_width) // 2
+        self.render_offset_y = (screen_height - self.render_height) // 2
+
+    def apply_display_mode(self):
+        if self.is_fullscreen:
+            info = pygame.display.Info()
+            self.screen = pygame.display.set_mode(
+                (info.current_w, info.current_h),
+                pygame.FULLSCREEN | pygame.SCALED
+            )
+        else:
+            self.screen = pygame.display.set_mode(
+                (config.SCREEN_WIDTH, config.SCREEN_HEIGHT),
+                pygame.SCALED
+            )
+
+        pygame.display.set_caption(config.WINDOW_TITLE)
+
+    def toggle_fullscreen(self):
+        self.is_fullscreen = not self.is_fullscreen
+        self.apply_display_mode()

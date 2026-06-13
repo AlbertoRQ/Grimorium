@@ -8,6 +8,8 @@ from game.ui.fonts import create_font
 from game.utils.paths import asset_path
 
 class ShopScreen(BaseScreen):
+    VIRTUAL_WIDTH = 320
+    VIRTUAL_HEIGHT = 180
     def __init__(self, game):
         super().__init__(game)
         self.player = self.game.player
@@ -17,16 +19,18 @@ class ShopScreen(BaseScreen):
         self.background_original_size = self.background.get_size()
 
         self.base_width, self.base_height = self.background_original_size
+
         self.pixel_scale = min(
-            config.SCREEN_WIDTH // self.base_width,
-            config.SCREEN_HEIGHT // self.base_height,
+            self.VIRTUAL_WIDTH // self.base_width,
+            self.VIRTUAL_HEIGHT // self.base_height,
         )
-        self.pixel_scale = max(1, self.pixel_scale)
+        self.player.visual.set_fixed_frame(0, 2)
+        self.player.visual.set_size(32 * self.pixel_scale, 32 * self.pixel_scale)
+
         self.render_width = self.base_width * self.pixel_scale
         self.render_height = self.base_height * self.pixel_scale
-        self.offset_x = (config.SCREEN_WIDTH - self.render_width) // 2
-        self.offset_y = (config.SCREEN_HEIGHT - self.render_height) // 2
-
+        self.offset_x = (self.VIRTUAL_WIDTH - self.render_width) // 2
+        self.offset_y = (self.VIRTUAL_HEIGHT - self.render_height) // 2
 
         self.background = pygame.transform.scale(
             self.background,
@@ -288,7 +292,7 @@ class ShopScreen(BaseScreen):
                 self.game.go_to_next_run_screen()
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            mouse_pos = event.pos
+            mouse_pos = self.screen_to_virtual(event.pos)
 
             for potion in self.potions_in_shop[:]:
                 if potion["rect"].collidepoint(mouse_pos):
@@ -305,6 +309,13 @@ class ShopScreen(BaseScreen):
                     self.buy_book(book)
                     break
 
+    def screen_to_virtual(self, pos):
+        mx, my = pos
+        return (
+            (mx - self.game.render_offset_x) // self.game.render_scale,
+            (my - self.game.render_offset_y) // self.game.render_scale,
+        )
+
     def draw(self, surface):
         surface.blit(self.background, (self.offset_x, self.offset_y))
 
@@ -317,8 +328,7 @@ class ShopScreen(BaseScreen):
         for power in self.powers_in_shop:
             surface.blit(power["image"], power["rect"])
 
-        self.player.visual.set_fixed_frame(0, 2)
-        self.player.visual.set_size(32 * self.pixel_scale, 32 * self.pixel_scale)
+        
         self.player.visual.draw(surface, self.player.x, self.player.y)
 
         self.player.draw_player_stats(surface, self.info_font, self.scaled_stat_positions)

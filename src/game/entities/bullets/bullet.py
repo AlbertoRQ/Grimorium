@@ -21,6 +21,8 @@ class Bullet(Entity):
         max_distance,
         elements=None,
         effect_data=None,
+        world_width=None,
+        world_height=None,
     ):
         super().__init__(x, y, radius, color)
         self.vel_x = vel_x
@@ -33,6 +35,9 @@ class Bullet(Entity):
 
         self.elements = elements or []
         self.effect_data = effect_data or {}
+
+        self.world_width = world_width
+        self.world_height = world_height
 
     def update(self, dt, blockers):
         move_x = self.vel_x * dt
@@ -51,10 +56,13 @@ class Bullet(Entity):
             self.destroyed = True
 
     def is_offscreen(self):
+        world_width = self.world_width if self.world_width is not None else config.SCREEN_WIDTH
+        world_height = self.world_height if self.world_height is not None else config.SCREEN_HEIGHT
+
         return (
-            self.x > config.SCREEN_WIDTH + self.radius
+            self.x > world_width + self.radius
             or self.x < -self.radius
-            or self.y > config.SCREEN_HEIGHT + self.radius
+            or self.y > world_height + self.radius
             or self.y < -self.radius
         )
     
@@ -74,12 +82,12 @@ BULLET_TYPES = {
         "rate": 1,
     },
     "gatling": {
-        "radius": 5,
+        "radius": config.BULLET_RADIUS*0.75,
         "damage": config.BULLET_DAMAGE,
         "rate": 0.5,
     },
     "spread": {
-        "radius": 15,
+        "radius": config.BULLET_RADIUS*1.5,
         "damage": config.BULLET_DAMAGE,
         "rate": 2,
     },

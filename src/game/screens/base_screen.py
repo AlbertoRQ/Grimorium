@@ -5,13 +5,21 @@ La idea es que todas las pantallas compartan la misma forma:
 - actualizarse
 - dibujarse
 """
+import pygame
 
 
 class BaseScreen:
+    VIRTUAL_WIDTH = 320
+    VIRTUAL_HEIGHT = 180
+
     def __init__(self, game):
-        # Guardamos el objeto principal del juego para acceder
-        # a pantalla, reloj, cambio de pantalla, etc.
         self.game = game
+        self.virtual_surface = pygame.Surface(
+            (self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT)
+        )
+
+    def get_virtual_size(self):
+        return self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT
 
     def on_enter(self):
         """Se llama al entrar en esta pantalla."""

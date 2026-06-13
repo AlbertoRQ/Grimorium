@@ -27,7 +27,7 @@ class ShooterEnemy(Enemy):
         self.shoot_cooldown = config.SHOOTER_ENEMY_FIRE_COOLDOWN
         self.bullet_speed = config.SHOOTER_ENEMY_BULLET_SPEED
         self.shoot_timer = 0.0
-        self.preferred_distance = 300
+        self.preferred_distance = 100
         self.shoot_distance = config.SHOOTER_ENEMY_SHOOT_DISTANCE
         self.bullet_element = None
 
@@ -36,8 +36,8 @@ class ShooterEnemy(Enemy):
             image_name="rat_animated.png",
             frame_cols=4,
             frame_rows=4,
-            scale_x=self.radius * 5,
-            scale_y=self.radius * 5,
+            scale_x = 32,
+            scale_y = 32,
             use_alpha=True,
             initial_state="idle",
             initial_facing="down",

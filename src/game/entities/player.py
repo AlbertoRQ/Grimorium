@@ -75,32 +75,34 @@ class Player(LivingEntity):
         self.move_dir_y = 0
         self.velocity_x = 0
         self.velocity_y = 0
-        self.acceleration = 2000
-        self.friction = 2000
+        self.acceleration = 667
+        self.friction = 667
         self.max_speed = config.PLAYER_SPEED
+
+        self.speed_animation = 0.20
 
         self.visual = AnimatedVisual(
             image_folder="player",
             image_name="mage_animated.png",
             frame_cols=4,
             frame_rows=4,
-            scale_x=self.radius * 3,
-            scale_y=self.radius * 3,
+            scale_x = 32,
+            scale_y = 32,
             use_alpha=True,
             initial_state="idle",
             initial_facing="down",
             animations={
-                "idle_right": {"row": 0, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+                "idle_right": {"row": 0, "frames": [0], "speed": self.speed_animation, "loop": True},
+                "walk_right": {"row": 0, "frames": [0, 1, 2, 3], "speed": self.speed_animation, "loop": True},
 
-                "idle_left": {"row": 1, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+                "idle_left": {"row": 1, "frames": [0], "speed": self.speed_animation, "loop": True},
+                "walk_left": {"row": 1, "frames": [0, 1, 2, 3], "speed": self.speed_animation, "loop": True},
 
-                "idle_down": {"row": 2, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+                "idle_down": {"row": 2, "frames": [0], "speed": self.speed_animation, "loop": True},
+                "walk_down": {"row": 2, "frames": [0, 1, 2, 3], "speed": self.speed_animation, "loop": True},
 
-                "idle_up": {"row": 3, "frames": [0], "speed": 0.25, "loop": True},
-                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": 0.25, "loop": True},
+                "idle_up": {"row": 3, "frames": [0], "speed": self.speed_animation, "loop": True},
+                "walk_up": {"row": 3, "frames": [0, 1, 2, 3], "speed": self.speed_animation, "loop": True},
             },
         )
 
@@ -252,10 +254,12 @@ class Player(LivingEntity):
 
 
     def draw_player_health(self, surface, font):
-        bar_width = 200 
-        bar_height = 60
+        surface_width = surface.get_width()
 
-        x = 185
+        bar_width = 120
+        bar_height = 16
+
+        x = 25
         y = 15
 
         health_ratio = self.health / self.max_health
@@ -306,8 +310,8 @@ class Player(LivingEntity):
         f"Coins: {self.coins}",
         ]
 
-        x = 15
-        y = 200
+        x = 0
+        y = 0
         line_height = 28
 
         for line in lines:

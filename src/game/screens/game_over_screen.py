@@ -11,8 +11,8 @@ class GameOverScreen(BaseScreen):
     def __init__(self, game):
         super().__init__(game)
         self.final_score = self.game.player.coins
-        self.title_font = create_font(72)
-        self.info_font = create_font(36)
+        self.title_font = create_font(15)
+        self.info_font = create_font(3)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -28,10 +28,13 @@ class GameOverScreen(BaseScreen):
     def draw(self, surface):
         surface.fill(config.BACKGROUND_COLOR)
 
+        surface_width = surface.get_width()
+        surface_height = surface.get_height()
+
         title = self.title_font.render("Game Over", True, config.HUD_COLOR)
         score = self.info_font.render(f"Puntos: {self.final_score}", True, config.HUD_COLOR)
         info = self.info_font.render("Enter = jugar otra vez | Escape = menu", True, config.HUD_COLOR)
 
-        surface.blit(title, title.get_rect(center=(config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2 - 60)))
-        surface.blit(score, score.get_rect(center=(config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2)))
-        surface.blit(info, info.get_rect(center=(config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2 + 50)))
+        surface.blit(title, title.get_rect(center=(surface_width // 2, surface_height // 2 - 10)))
+        surface.blit(score, score.get_rect(center=(surface_width // 2, surface_height // 2 + 10)))
+        surface.blit(info, info.get_rect(center=(surface_width // 2, surface_height // 2 + 20)))

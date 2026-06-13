@@ -88,7 +88,7 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multipl
             if circles_collide(bullet, enemy):
                 enemy.take_damage(damage)
 
-                knockback_strength = 250
+                knockback_strength = 83
                 length = math.hypot(bullet.vel_x, bullet.vel_y)
 
                 if length > 0:

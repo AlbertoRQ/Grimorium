@@ -48,10 +48,14 @@ class AnimatedVisual:
         self.sprite.set_frame(col, row)
 
     def set_state(self, state, reset=False):
+        if not reset and self.animator.state == state:
+            return
         self.animator.set_state(state, reset=reset)
         self.refresh()
 
     def set_facing(self, facing):
+        if self.animator.facing == facing:
+            return
         self.animator.set_facing(facing)
         self.refresh()
 

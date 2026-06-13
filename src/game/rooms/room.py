@@ -6,7 +6,7 @@ from game import config
 
 
 class Room:
-    def __init__(self, layout, room_type):
+    def __init__(self, layout, room_type, viewport_width, viewport_height):
         self.layout = layout
         self.room_type = room_type
         self.cleared = False
@@ -26,8 +26,14 @@ class Room:
         self.room_width = max(len(row) for row in self.layout) * config.ROOM_CELL_SIZE
         self.room_height = len(self.layout) * config.ROOM_CELL_SIZE
 
-        self.offset_x = (config.SCREEN_WIDTH - self.room_width) // 2
-        self.offset_y = (config.SCREEN_HEIGHT - self.room_height) // 2
+        self.viewport_width = viewport_width
+        self.viewport_height = viewport_height
+
+        self.room_width = max(len(row) for row in self.layout) * config.ROOM_CELL_SIZE
+        self.room_height = len(self.layout) * config.ROOM_CELL_SIZE
+
+        self.offset_x = (self.viewport_width - self.room_width) // 2
+        self.offset_y = (self.viewport_height - self.room_height) // 2
 
         self.load_layout()
 

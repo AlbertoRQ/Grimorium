@@ -39,9 +39,12 @@ class SpriteVisual:
         self.current_col = 0
         self.current_row = 0
 
-        self.set_frame(0, 0)
+        self.frame_cache = {}
+        self.tinted_cache = {}
 
         self.tint = None
+
+        self.set_frame(0, 0)
 
     def get_frame(self, col, row):
         frame_rect = pygame.Rect(
@@ -56,13 +59,21 @@ class SpriteVisual:
         self.current_col = col
         self.current_row = row
 
-        frame = self.get_frame(col, row)
-        self.current_surface = pygame.transform.scale(
-            frame,
-            (self.scale_x, self.scale_y),
-        )
+        cache_key = (col, row, self.scale_x, self.scale_y)
+
+        if cache_key not in self.frame_cache:
+            frame = self.get_frame(col, row)
+            self.frame_cache[cache_key] = pygame.transform.scale(
+                frame,
+                (self.scale_x, self.scale_y),
+            )
+
+        self.current_surface = self.frame_cache[cache_key]
 
     def set_size(self, scale_x, scale_y):
+        if self.scale_x == scale_x and self.scale_y == scale_y:
+            return
+
         self.scale_x = scale_x
         self.scale_y = scale_y
         self.set_frame(self.current_col, self.current_row)
@@ -71,6 +82,7 @@ class SpriteVisual:
         rect = self.current_surface.get_rect(center=(int(x), int(y)))
         surface.blit(self.current_surface, rect)
     
+
     def set_tint(self, color):
         self.tint = color
 

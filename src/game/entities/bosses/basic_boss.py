@@ -31,8 +31,8 @@ class BasicBoss(Enemy):
             image_name="rat_animated.png",
             frame_cols=4,
             frame_rows=4,
-            scale_x=self.radius * 3,
-            scale_y=self.radius * 3,
+            scale_x = 64,
+            scale_y = 64,
             use_alpha=True,
             initial_state="idle",
             initial_facing="down",
@@ -52,11 +52,14 @@ class BasicBoss(Enemy):
         )
 
     def draw_boss_health_bar(self, surface, font):
-        bar_width = config.SCREEN_WIDTH - 80
+        surface_width = surface.get_width()
+        surface_height = surface.get_height()
+
+        bar_width = surface_width - 80
         bar_height = 30
 
         x = 40
-        y = config.SCREEN_HEIGHT - bar_height - 30
+        y = surface_height - bar_height - 20
 
         health_ratio = self.health / self.max_health
         health_ratio = max(0, min(1, health_ratio))

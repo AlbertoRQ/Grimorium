@@ -31,11 +31,13 @@ ELEMENTS_KEYS = {
 
 
 class CombatScreen(BaseScreen):
+    VIRTUAL_WIDTH = 640
+    VIRTUAL_HEIGHT = 360
     def __init__(self, game, room_layout, room_type):
         super().__init__(game)
 
         self.player = self.game.player
-        self.player.visual.set_size(self.player.radius * 3, self.player.radius * 3)
+        self.player.visual.set_size(32, 32)
         self.player.visual.clear_fixed_frame()
         self.player.visual.set_locked(False)
         self.player.visual.set_state("idle", reset=True)
@@ -43,9 +45,9 @@ class CombatScreen(BaseScreen):
         self.bullets = []
         self.enemies = []
         self.enemies_bullets = []
-        self.font = create_font(20)
+        self.font = create_font(3)
 
-        self.room = Room(room_layout, room_type)
+        self.room = Room(room_layout, room_type, self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT)
         self.place_player_at_spawn()
 
         self.complete = False
@@ -59,14 +61,14 @@ class CombatScreen(BaseScreen):
         self.room_time = 0
 
         self.stat_positions = {
-            "coins": (210, 110),
-            "health": (210, 120),
-            "damage": (210, 130),
-            "speed": (210, 140),
-            "fire_rate": (210, 150),
-            "shoot_distance": (210, 160),
-            "body_damage": (210, 170),
-            "luck": (210, 180),
+            "coins": (25, 60),
+            "health": (25, 85),
+            "damage": (25, 110),
+            "speed": (25, 135),
+            "fire_rate": (25, 160),
+            "shoot_distance": (25, 185),
+            "body_damage": (25, 210),
+            "luck": (25, 235),
         }
 
     def get_blockers(self, include_walls=True, include_objects=True, include_voids=False):
@@ -102,23 +104,23 @@ class CombatScreen(BaseScreen):
     def kill_all_enemies(self):
         self.enemies = []
 
-    def update_player(self, dt):
+    def update_player(self, dt, blockers):
         keys = pygame.key.get_pressed()
-        self.player.move(keys, dt, self.get_blockers(True, True, True), [])
+        self.player.move(keys, dt, blockers, [])
         self.player.update(dt)
 
     def update_player_shooting(self):
         keys = pygame.key.get_pressed()
         self.bullets.extend(self.player.shoot(keys))
 
-    def update_enemies(self, dt):
+    def update_enemies(self, dt, blockers):
         for enemy in self.enemies:
-            new_bullets = enemy.update(self.player, dt, self.get_blockers(True, True, True), self.enemies)
+            new_bullets = enemy.update(self.player, dt, blockers, self.enemies)
 
             if new_bullets:
                 self.enemies_bullets.extend(new_bullets)
 
-    def update_projectiles(self, dt):
+    def update_projectiles(self, dt, blockers):
         blockers = self.get_blockers(True, True, False)
 
         for bullet in self.bullets:
@@ -138,11 +140,11 @@ class CombatScreen(BaseScreen):
         ]
 
 
-    def resolve_collisions(self):
+    def resolve_collisions(self, blockers):
         self.bullets, self.enemies, coins_gained = resolve_player_bullets_vs_enemies(
             self.bullets,
             self.enemies,
-            self.get_blockers(True, True, True),
+            blockers,
             self.player.damage,
         )
         self.player.coins += coins_gained
@@ -155,7 +157,7 @@ class CombatScreen(BaseScreen):
         self.enemies, coins_gained = resolve_enemies_touch_player(
             self.enemies,
             self.player,
-            self.get_blockers(True, True, True)
+            blockers
         )
         self.player.coins += coins_gained
 
@@ -185,8 +187,8 @@ class CombatScreen(BaseScreen):
             enemy_bullet.draw(surface)
 
         lines = [f"Time: {self.room_time:.1f}"]
-        x = 50
-        y = 150
+        x = 25
+        y = 40
         line_height = 28
         for line in lines:
             text = self.font.render(line, True, config.HUD_COLOR)
@@ -283,12 +285,15 @@ class CombatScreen(BaseScreen):
             self.player.coins += time_coins       
 
     def update(self, dt):
-        self.update_player(dt)
+        blockers_full = self.get_blockers(True, True, True)
+        blockers_projectiles = self.get_blockers(True, True, False)
+
+        self.update_player(dt, blockers_full)
         self.update_player_shooting()
-        self.update_projectiles(dt)
-        self.update_enemies(dt)
+        self.update_projectiles(dt, blockers_projectiles)
+        self.update_enemies(dt, blockers_full)
         self.remove_dead_enemies()
-        self.resolve_collisions()
+        self.resolve_collisions(blockers_full)
         self.check_game_over()
         self.is_complete()
         self.update_items()
