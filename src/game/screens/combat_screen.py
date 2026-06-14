@@ -15,6 +15,7 @@ from game.entities.items.item_data import choose_random_item_id
 
 from game.entities.triggers.trigger import Trigger
 
+from game.utils.paths import asset_path
 
 WEAPON_KEYS = {
     pygame.K_1: "normal",
@@ -36,6 +37,29 @@ class CombatScreen(BaseScreen):
     def __init__(self, game, room_layout, room_type):
         super().__init__(game)
 
+        # Shop background
+        self.background = pygame.image.load(asset_path("images", "combat_screen.png")).convert()
+        self.background_original_size = self.background.get_size()
+
+        self.base_width, self.base_height = self.background_original_size
+
+        self.pixel_scale = min(
+            self.VIRTUAL_WIDTH // self.base_width,
+            self.VIRTUAL_HEIGHT // self.base_height,
+        )
+
+        self.render_width = self.base_width * self.pixel_scale
+        self.render_height = self.base_height * self.pixel_scale
+        self.offset_x = (self.VIRTUAL_WIDTH - self.render_width) // 2
+        self.offset_y = (self.VIRTUAL_HEIGHT - self.render_height) // 2
+
+        self.background = pygame.transform.scale(
+            self.background,
+            (self.render_width, self.render_height)
+        )
+
+
+
         self.player = self.game.player
         self.player.visual.set_size(32, 32)
         self.player.visual.clear_fixed_frame()
@@ -45,7 +69,7 @@ class CombatScreen(BaseScreen):
         self.bullets = []
         self.enemies = []
         self.enemies_bullets = []
-        self.font = create_font(3)
+        self.font = create_font(9)
 
         self.room = Room(room_layout, room_type, self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT)
         self.place_player_at_spawn()
@@ -61,14 +85,14 @@ class CombatScreen(BaseScreen):
         self.room_time = 0
 
         self.stat_positions = {
-            "coins": (25, 60),
-            "health": (25, 85),
-            "damage": (25, 110),
-            "speed": (25, 135),
-            "fire_rate": (25, 160),
-            "shoot_distance": (25, 185),
-            "body_damage": (25, 210),
-            "luck": (25, 235),
+            "coins": (58, 97),
+            "health": (0, 0),
+            "damage": (60, 121),
+            "speed": (60, 143),
+            "fire_rate": (60, 163),
+            "shoot_distance": (60, 183),
+            "body_damage": (60, 205),
+            "luck": (0, 0),
         }
 
     def get_blockers(self, include_walls=True, include_objects=True, include_voids=False):
@@ -165,7 +189,7 @@ class CombatScreen(BaseScreen):
         self.enemies = [enemy for enemy in self.enemies if not enemy.is_dead()]
 
     def draw(self, surface):
-        surface.fill(config.BACKGROUND_COLOR)
+        surface.blit(self.background, (self.offset_x, self.offset_y))
 
         self.room.draw(surface)
 

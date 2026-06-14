@@ -307,7 +307,8 @@ class Player(LivingEntity):
 
     def draw_player_items(self, surface, font):
         lines = [
-        f"Coins: {self.coins}",
+        ""
+        #f"Coins: {self.coins}",
         ]
 
         x = 0
