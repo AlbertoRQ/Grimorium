@@ -37,7 +37,7 @@ class CombatScreen(BaseScreen):
     def __init__(self, game, room_layout, room_type):
         super().__init__(game)
 
-        # Shop background
+        # Combat background
         self.background = pygame.image.load(asset_path("images", "combat_screen.png")).convert()
         self.background_original_size = self.background.get_size()
 
@@ -95,6 +95,41 @@ class CombatScreen(BaseScreen):
             "luck": (0, 0),
         }
 
+        self.floor_track_rooms = [
+            step for step in config.RUN_PATTERN
+            if step != "shop"
+        ]
+
+        self.floor_track_images = {
+            "normal": pygame.image.load(
+                asset_path("images", "floor_track", "normal_floor.png")
+            ).convert_alpha(),
+            "boss": pygame.image.load(
+                asset_path("images", "floor_track", "boss_floor.png")
+            ).convert_alpha(),
+            "shop": pygame.image.load(
+                asset_path("images", "floor_track", "shop_floor.png")
+            ).convert_alpha(),
+        }
+
+        self.floor_track_floor_positions  = [
+            (595, 240),
+            (595, 217),
+            (595, 194),
+            (595, 171),
+            (595, 148),
+            (595, 125),
+        ]
+
+        self.floor_track_shop_positions = [
+            (595, 228),
+            (595, 205),
+            (595, 182),
+            (595, 159),
+            (595, 136),
+        ]
+
+        self.floor_track_shop_indices = self.build_floor_track_shops()
     def get_blockers(self, include_walls=True, include_objects=True, include_voids=False):
         return self.room.get_blocking_rects(include_walls, include_objects, include_voids)
 
@@ -210,14 +245,54 @@ class CombatScreen(BaseScreen):
         for enemy_bullet in self.enemies_bullets:
             enemy_bullet.draw(surface)
 
-        lines = [f"Time: {self.room_time:.1f}"]
-        x = 25
-        y = 40
-        line_height = 28
-        for line in lines:
-            text = self.font.render(line, True, config.HUD_COLOR)
-            surface.blit(text, (x, y))
-            y += line_height
+        max_floors = sum(1 for step in config.RUN_PATTERN if step == "normal" or step == "boss")
+        current_floor = self.game.room_level
+
+        current_loop = self.game.run_cycles + 1
+        max_loops = self.game.max_cycles
+
+        time_text = self.font.render(f"Time: {self.room_time:.1f}", True, config.HUD_COLOR)
+        time_rect = time_text.get_rect(center=(53, 55))
+        surface.blit(time_text, time_rect)
+
+
+        floor_text = self.font.render(f"FLOOR", True, config.HUD_COLOR)
+        floor_rect = floor_text.get_rect(center=(595, 271))
+        surface.blit(floor_text, floor_rect)
+
+        floor_num = self.font.render(f"{current_floor}/{max_floors}", True, config.HUD_COLOR)
+        floor_num_rect = floor_num.get_rect(center=(595, 285))
+        surface.blit(floor_num, floor_num_rect)
+
+
+        loop_text = self.font.render(f"LOOP", True, config.HUD_COLOR)
+        loop_rect = loop_text.get_rect(center=(595, 307))        
+        surface.blit(loop_text, loop_rect)
+
+        loop_num = self.font.render(f"{current_loop}/{max_loops}", True, config.HUD_COLOR)
+        loop_num_rect = loop_num.get_rect(center=(595, 321))        
+        surface.blit(loop_num, loop_num_rect)
+
+
+        for index, room_type in enumerate(self.floor_track_rooms):
+            image = self.floor_track_images[room_type]
+            rect = image.get_rect(center=self.floor_track_floor_positions[index])
+            surface.blit(image, rect)
+
+        for shop_index in self.floor_track_shop_indices:
+            if shop_index >= len(self.floor_track_shop_positions):
+                continue
+
+            image = self.floor_track_images["shop"]
+            rect = image.get_rect(center=self.floor_track_shop_positions[shop_index])
+            surface.blit(image, rect)
+
+        marker_pos = self.get_floor_track_marker_position()
+
+        pygame.draw.circle(surface, (0, 0, 0), marker_pos, 6)
+        pygame.draw.circle(surface, (255, 255, 255), marker_pos, 4)
+
+        
 
         self.draw_extra(surface)
         self.draw_hud(surface)
@@ -230,6 +305,42 @@ class CombatScreen(BaseScreen):
         self.player.draw_player_stats(surface, self.font, self.stat_positions)
         self.player.draw_player_health(surface, self.font)
         self.player.draw_player_items(surface, self.font)
+
+    def get_current_floor_track_index(self):
+        combat_index = 0
+
+        for index, step in enumerate(config.RUN_PATTERN):
+            if step == "shop":
+                continue
+
+            if index == self.game.current_step_index:
+                return combat_index
+
+            combat_index += 1
+
+        return 0
+        
+    def get_floor_track_marker_position(self):
+        current_index = self.get_current_floor_track_index()
+        x, y = self.floor_track_floor_positions[current_index]
+        return (x - 18, y)
+    
+    def build_floor_track_shops(self):
+        shops_between_rooms = []
+        room_count = 0
+
+        for step in config.RUN_PATTERN:
+            if step in ("normal", "boss"):
+                room_count += 1
+                continue
+
+            if step == "shop":
+                # Solo cuenta si está entre dos rooms del track
+                if 0 < room_count < len(self.floor_track_rooms):
+                    shops_between_rooms.append(room_count - 1)
+
+        return shops_between_rooms
+
 
     def check_game_over(self):
         if self.player.health <= 0:

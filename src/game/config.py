@@ -4,8 +4,8 @@ Es la misma idea que ya tenias en `estructura_simple/ajustes.py`,
 pero puesta dentro de la estructura por carpetas.
 """
 
-SCREEN_WIDTH = 1920     # 3840, 2560, 1920, 1280
-SCREEN_HEIGHT = 1080    # 2160, 1440, 1080, 720 
+SCREEN_WIDTH = 1280     # 3840, 2560, 1920, 1280
+SCREEN_HEIGHT = 720    # 2160, 1440, 1080, 720 
 FPS = 60
 WINDOW_TITLE = "Grimorium"
 
@@ -98,6 +98,7 @@ RUN_PATTERN = [
     "shop",
     "normal",
     "normal",
+    "shop",
     "boss",
     "shop",
 ]

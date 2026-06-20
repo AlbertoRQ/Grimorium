@@ -38,6 +38,7 @@ class Game:
 
         self.run_step = 0
         self.current_step = self.run_step
+        self.current_step_index = 0
         self.run_cycles = 0
         self.max_cycles = 3
         self.player = Player()
@@ -52,7 +53,8 @@ class Game:
 
 
     def go_to_next_run_screen(self):
-        step = RUN_PATTERN[self.run_step]
+        self.current_step_index = self.run_step
+        step = RUN_PATTERN[self.current_step_index]
 
         self.run_step += 1
         if self.run_step >= len(RUN_PATTERN):
@@ -72,25 +74,35 @@ class Game:
 
     def finish_current_screen(self):
         if self.mode == "boss_test":
-                self.screen_manager.set_screen(MenuScreen(self))
-                return
-        
+            self.screen_manager.set_screen(MenuScreen(self))
+            return
+
         if self.current_step == "normal":
             self.room_level += 1
 
-        if self.current_step == "boss":
+        if self.is_last_step_of_loop():
             self.run_cycles += 1
 
             if self.run_cycles >= self.max_cycles:
                 self.screen_manager.set_screen(GameOverScreen(self))
                 return
 
+            self.room_level = 1
+
         self.go_to_next_run_screen()
+
+    def is_last_step_of_loop(self):
+        for index in range(len(RUN_PATTERN) - 1, -1, -1):
+            if RUN_PATTERN[index] != "shop":
+                return self.current_step_index == index
+
+        return False
 
     def start_new_run(self):
         self.mode = "normal_run"
         self.run_step = 0
         self.current_step = None
+        self.current_step_index = 0
         self.run_cycles = 0
         self.room_level = 1
         self.player = Player()
