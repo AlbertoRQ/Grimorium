@@ -11,6 +11,7 @@ from game import config
 from game.core.screen_manager import ScreenManager
 from game.entities.player import Player
 from game.config import RUN_PATTERN
+from game.systems.localization import Localization
 
 from game.screens.menu_screen import MenuScreen
 from game.screens.play_screen import PlayScreen
@@ -31,6 +32,7 @@ class Game:
         self.is_fullscreen = False
         self.apply_display_mode()
         pygame.display.set_caption(config.WINDOW_TITLE)
+        self.localization = Localization("en")
 
         self.clock = pygame.time.Clock()
         self.running = True
@@ -42,8 +44,10 @@ class Game:
         self.run_cycles = 0
         self.max_cycles = 3
         self.player = Player()
+        self.mode = "menu"
 
         self.room_level = 1
+        self.enemy_level = 1
 
         # La primera pantalla sera el menu.
         self.screen_manager.set_screen(MenuScreen(self))
@@ -80,6 +84,9 @@ class Game:
         if self.current_step == "normal":
             self.room_level += 1
 
+        if self.current_step in ("normal", "boss"):
+            self.enemy_level += 1
+
         if self.is_last_step_of_loop():
             self.run_cycles += 1
 
@@ -105,6 +112,7 @@ class Game:
         self.current_step_index = 0
         self.run_cycles = 0
         self.room_level = 1
+        self.enemy_level = 1
         self.player = Player()
 
         self.go_to_next_run_screen()

@@ -7,6 +7,9 @@ CHAR_H = 5
 COLS = 16
 SCALE = 4
 
+CHAR_SPACING_X = 1
+CHAR_SPACING_Y = 1
+
 CHAR_WIDTHS = {
     ".": 1,
     ",": 1,
@@ -18,7 +21,7 @@ CHAR_WIDTHS = {
 }
 
 # Orden típico ASCII: espacio, !, ", #, $, %, ..., A, B, C...
-CHAR_ORDER = "".join(chr(i) for i in range(32, 128))
+CHAR_ORDER = "".join(chr(i) for i in range(32, 128)) + "áéíóúÁÉÍÓÚñÑüÜ¿¡"
 
 
 class PixelFont:
@@ -28,8 +31,8 @@ class PixelFont:
         self.glyphs = {}
 
         for i, char in enumerate(CHAR_ORDER):
-            x = (i % COLS) * CHAR_W
-            y = (i // COLS) * CHAR_H
+            x = (i % COLS) * (CHAR_W + CHAR_SPACING_X)
+            y = (i // COLS) * (CHAR_H + CHAR_SPACING_Y)
 
             rect = pygame.Rect(x, y, CHAR_W, CHAR_H)
             glyph = self.sheet.subsurface(rect).copy()

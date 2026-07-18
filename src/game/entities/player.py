@@ -2,21 +2,12 @@
 
 import math
 import pygame
-import random
 
 from game import config
-from game.entities.bullets.bullet import create_gatling_shot
-from game.entities.bullets.bullet import create_normal_shot
-from game.entities.bullets.bullet import create_spread_shot
 from game.entities.entity import LivingEntity
-from game.entities.items.item_data import ITEM_DEFINITIONS 
+from game.systems.shot_builder import build_player_shot
 from game.visuals.animated_visual import AnimatedVisual
 
-SHOT_FACTORIES = {
-    "normal": create_normal_shot,
-    "gatling": create_gatling_shot,
-    "spread": create_spread_shot,
-}
 
 class Player(LivingEntity):
     def __init__(self):
@@ -39,8 +30,12 @@ class Player(LivingEntity):
 
         self.shoot_timer = 0
         self.bullet_type = "normal"
+        self.shot_modifiers = set()
+
         self.base_bullet_elements = []
+        # self.extra_bullet_element = {"poison":1, "ice":1, "electric":1}
         self.extra_bullet_element = {}
+        self.power_element_order = []
         self.element_stats = {
             "fire": {
                 "level": 1,
@@ -56,7 +51,18 @@ class Player(LivingEntity):
                 "ice_duration": 1.5,
                 "ice_cooldown": 2,
             },
-            "electric": {},
+            "electric": {
+                "level": 1,
+                "damage_percentage": 0.40,
+                "max_targets": 2,
+                "max_jump_distance": 100,
+            },
+            "poison": {
+                "level": 1,
+                "max_stacks": 5,
+                "damage_taken_per_stack": 0.05,
+                "boss_duration": 2,
+            },
         }
         
         self.combo_stats = {
@@ -64,20 +70,44 @@ class Player(LivingEntity):
                 "level": 1,
                 "damage_multiplier": 2.0,
             },
+            "fire_electric": {
+                "level": 1,
+                "fragment_count": 5,
+                "damage_multiplier": 0.50,
+                "fragment_range": 60,
+                "embed_duration": 1,
+                "spread_angle": 80,
+            },
+            "ice_electric": {
+                "level": 1,
+                "puddle_size_multiplier": 1.0,
+                "puddle_duration_bonus": 1.0,
+                "electric_duration": 2.0,
+                "tick_damage": 0.5,
+            },
+            "fire_poison": {
+                "level": 1,
+                "cloud_radius": 35,
+                "cloud_duration": 3.0,
+                "tick_time": 0.75,
+                "stacks_per_tick": 1,
+            },
+            "ice_poison": {
+                "level": 1,
+                "fragile_duration": 3.0,
+                "execute_base_threshold": 0.03,
+                "execute_threshold_per_stack": 0.02,
+            },
         }
 
         self.invulnerability_timer = 0
 
-        self.coins = 0
-        self.items = []
+        self.coins = config.PLAYER_COINS
 
-        self.move_dir_x = 0
-        self.move_dir_y = 0
         self.velocity_x = 0
         self.velocity_y = 0
         self.acceleration = 667
         self.friction = 667
-        self.max_speed = config.PLAYER_SPEED
 
         self.speed_animation = 0.20
 
@@ -143,8 +173,8 @@ class Player(LivingEntity):
         self.velocity_y += move_y * self.acceleration * dt
 
         speed = math.hypot(self.velocity_x, self.velocity_y)
-        if speed > self.max_speed:
-            scale = self.max_speed / speed
+        if speed > self.speed:
+            scale = self.speed / speed
             self.velocity_x *= scale
             self.velocity_y *= scale
 
@@ -183,6 +213,7 @@ class Player(LivingEntity):
         self.health = max(0, self.health - damage)
         self.invulnerability_timer = config.PLAYER_INVULNERABILITY_TIME
 
+
     def shoot(self, keys):
 
         if self.shoot_timer > 0:
@@ -214,7 +245,7 @@ class Player(LivingEntity):
             move_dir_x = 0
             move_dir_y = 0
 
-        speed_factor = move_speed / self.max_speed
+        speed_factor = move_speed / self.speed
         speed_factor = min(speed_factor, 1)
 
         forward_amount = (move_dir_x * shoot_x + move_dir_y * shoot_y) * speed_factor
@@ -232,29 +263,18 @@ class Player(LivingEntity):
         vel_x = shoot_x * bullet_speed + right_x * side_amount * config.SIDE_DRIFT
         vel_y = shoot_y * bullet_speed + right_y * side_amount * config.SIDE_DRIFT
 
+        bullets, cooldown_multiplier = build_player_shot(
+            self,
+            vel_x,
+            vel_y,
+        )
 
-        elements = self.base_bullet_elements.copy()
-
-        for element, chance in self.extra_bullet_element.items():
-            if random.random() < chance:
-                elements.append(element)
-
-        effect_data = {}
-        effect_data["combos"] = {
-            "fire_ice": self.combo_stats["fire_ice"].copy(),
-        }
-        for element in elements:
-            if element in self.element_stats:
-                effect_data[element] = self.element_stats[element].copy()
-        factory = SHOT_FACTORIES[self.bullet_type]
-        shoot, rate = factory(self.x, self.y, vel_x, vel_y, self.shoot_distance, elements, effect_data)
-        
-        self.shoot_timer = self.fire_rate * rate
-        return shoot
+        self.shoot_timer = self.fire_rate * cooldown_multiplier
+        return bullets
 
 
+    
     def draw_player_health(self, surface, font):
-        surface_width = surface.get_width()
 
         bar_width = 120
         bar_height = 16
@@ -304,40 +324,6 @@ class Player(LivingEntity):
             text_rect.y = cy - text_rect.height // 2
 
             surface.blit(text, text_rect)
-
-    def draw_player_items(self, surface, font):
-        lines = [
-        ""
-        #f"Coins: {self.coins}",
-        ]
-
-        x = 0
-        y = 0
-        line_height = 28
-
-        for line in lines:
-            text = font.render(line, True, config.HUD_COLOR)
-            surface.blit(text, (x, y))
-            y += line_height
-
-    def apply_item(self, item):
-        self.items.append(item.item_id)
-        
-        data = ITEM_DEFINITIONS[item.item_id]
-        effect = data["effect"]
-
-        if effect["type"] == "stat":
-            stat = effect["stat"]
-            amount = effect["amount"]
-            setattr(self, stat, getattr(self, stat) + amount)
-
-        elif effect["type"] == "stat_multiplier":
-            stat = effect["stat"]
-            multiplier = effect["multiplier"]
-            setattr(self, stat, getattr(self, stat) * multiplier)
-
-        elif effect["type"] == "set_shot":
-            self.bullet_type = effect["value"]
 
     
     def draw(self, surface):

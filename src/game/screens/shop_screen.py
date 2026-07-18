@@ -1,9 +1,11 @@
+import re
 import pygame
 import random
 
 from game import config
-from game.screens.base_screen import BaseScreen
 from game.ui.fonts import create_font
+from game.screens.base_screen import BaseScreen
+from game.systems.shop_effects import apply_potion, apply_book, apply_power
 
 from game.utils.paths import asset_path
 
@@ -14,7 +16,6 @@ class ShopScreen(BaseScreen):
         super().__init__(game)
         self.player = self.game.player
 
-        # Shop background
         self.background = pygame.image.load(asset_path("images", "shop.bmp")).convert()
         self.background_original_size = self.background.get_size()
 
@@ -24,6 +25,7 @@ class ShopScreen(BaseScreen):
             self.VIRTUAL_WIDTH // self.base_width,
             self.VIRTUAL_HEIGHT // self.base_height,
         )
+
         self.player.visual.set_fixed_frame(0, 2)
         self.player.visual.set_size(32 * self.pixel_scale, 32 * self.pixel_scale)
 
@@ -34,16 +36,18 @@ class ShopScreen(BaseScreen):
 
         self.background = pygame.transform.scale(
             self.background,
-            (self.render_width, self.render_height)
+            (self.render_width, self.render_height),
         )
 
         self.title_font = create_font(pixel_scale=self.pixel_scale)
         self.info_font = create_font(pixel_scale=self.pixel_scale)
-
+        self.tooltip_font = self.info_font
+        self.tooltip_icon_w = 5
+        self.tooltip_icon_h = 6
+        self.tooltip_icons = self.load_tooltip_icons()
 
         self.player.x = self.offset_x + 205 * self.pixel_scale
         self.player.y = self.offset_y + 124 * self.pixel_scale
-        
 
         self.shop_slots = {
             "potions": [
@@ -60,115 +64,49 @@ class ShopScreen(BaseScreen):
                 (55, 84), (87, 84),
             ],
         }
-        
 
-        # Potions
-        potion_size = (32 * self.pixel_scale, 32 * self.pixel_scale)
+        item_size = (32 * self.pixel_scale, 32 * self.pixel_scale)
 
-        self.loaded_potions = []
+        self.loaded_potions = self.load_shop_assets(
+            config.POTION_DATA,
+            (0, 0, 0),
+            item_size,
+        )
+        self.potions_in_shop = self.build_shop_items(
+            self.loaded_potions,
+            self.shop_slots["potions"],
+            config.POTION_DATA,
+            max_items = 4,
+        )
 
-        for image_path in asset_path("images", "potions").glob("potion_*.*"):
-            potion_id = image_path.stem.removeprefix("potion_")
+        self.loaded_books = self.load_shop_assets(
+            config.BOOK_DATA,
+            (0, 147, 71),
+            item_size,
+        )
+        self.books_in_shop = self.build_shop_items(
+            self.loaded_books,
+            self.shop_slots["books"],
+            config.BOOK_DATA,
+            self.can_book_appear,
+            max_items = 3,
+        )
 
-            image = pygame.image.load(str(image_path)).convert()
-            image.set_colorkey((0, 0, 0))
-            image = pygame.transform.scale(image, potion_size)
+        self.loaded_powers = self.load_shop_assets(
+            config.POWER_DATA,
+            (0, 147, 0),
+            item_size,
+        )
+        self.powers_in_shop = self.build_shop_items(
+            self.loaded_powers,
+            self.shop_slots["powers"],
+            config.POWER_DATA,
+            self.can_power_appear,
+            allow_duplicates=False,
+            max_items = 4,
+        )
 
-            self.loaded_potions.append({
-                "id": potion_id,
-                "image": image,
-                "path": str(image_path),
-            })
-        
-        self.potions_in_shop = []
-        
-
-        for slot in self.shop_slots["potions"]:
-            potion_data = random.choice(self.loaded_potions)
-
-            rect = self.build_layout_rect(self.shop_slots["potions"][len(self.potions_in_shop)], (32, 32))
-
-            self.potions_in_shop.append({
-                "id": potion_data["id"],
-                "image": potion_data["image"],
-                "price": config.POTION_DATA[potion_data["id"]]["price"],
-                "rect": rect,
-            })
-
-
-        # Books
-        book_size = (32 * self.pixel_scale, 32 * self.pixel_scale)
-
-        self.loaded_books = []
-
-        for image_path in asset_path("images", "books").glob("book_*.*"):
-            book_id = image_path.stem.removeprefix("book_")
-
-            image = pygame.image.load(str(image_path)).convert()
-            image.set_colorkey((0, 147, 71))
-            image = pygame.transform.scale(image, book_size)
-
-            self.loaded_books.append({
-                "id": book_id,
-                "image": image,
-                "path": str(image_path),
-            })
-        
-        self.books_in_shop = []
-
-        for slot in self.shop_slots["books"]:
-            book_data = random.choice(self.loaded_books)
-
-            rect = self.build_layout_rect(self.shop_slots["books"][len(self.books_in_shop)], (32, 32))
-
-            self.books_in_shop.append({
-                "id": book_data["id"],
-                "image": book_data["image"],
-                "price": config.BOOK_DATA[book_data["id"]]["price"],
-                "rect": rect,
-            })
-
-        # Powers
-        power_size = (32 * self.pixel_scale, 32 * self.pixel_scale)
-
-        self.loaded_powers = []
-
-        for image_path in asset_path("images", "powers").glob("power_*.*"):
-            power_id = image_path.stem.removeprefix("power_")
-
-            image = pygame.image.load(str(image_path)).convert()
-            image.set_colorkey((0, 147, 0))
-            image = pygame.transform.scale(image, power_size)
-
-            self.loaded_powers.append({
-                "id": power_id,
-                "image": image,
-                "path": str(image_path),
-            })
-        
-        self.powers_in_shop = []
-
-        for slot in self.shop_slots["powers"]:
-            power_data = random.choice(self.loaded_powers)
-
-            rect = self.build_layout_rect(self.shop_slots["powers"][len(self.powers_in_shop)], (32, 32))
-
-            self.powers_in_shop.append({
-                "id": power_data["id"],
-                "image": power_data["image"],
-                "price": config.POWER_DATA[power_data["id"]]["price"],
-                "rect": rect,
-            })
-
-        self.price_powers = pygame.image.load(asset_path("images", "prices", f"price_{config.POWER_PRICE}.png")).convert_alpha()
-        self.price_potions = pygame.image.load(asset_path("images", "prices", f"price_{config.POTION_PRICE}.png")).convert_alpha()
-        self.price_books = pygame.image.load(asset_path("images", "prices", f"price_{config.BOOK_PRICE}.png")).convert_alpha()
-
-        price_size = (19 * self.pixel_scale, 11 * self.pixel_scale)
-
-        self.price_powers = pygame.transform.scale(self.price_powers, price_size)
-        self.price_potions = pygame.transform.scale(self.price_potions, price_size)
-        self.price_books = pygame.transform.scale(self.price_books, price_size)
+        self.price_images = self.load_price_images()
 
         self.price_positions = {
             "powers": (70, 105),
@@ -192,99 +130,256 @@ class ShopScreen(BaseScreen):
             for key, point in self.stat_positions.items()
         }
 
-        self.level_book_images = {}
+        self.level_book_images = self.load_level_book_images()
+
+        self.power_levels_book_size = (146, 68)
+
+        power_levels_book_original = pygame.image.load(
+            asset_path("images", "ui", "power_levels_book.png")
+        ).convert_alpha()
+
+        self.power_levels_book = pygame.transform.scale(
+            power_levels_book_original,
+            (
+                self.power_levels_book_size[0] * self.pixel_scale,
+                self.power_levels_book_size[1] * self.pixel_scale,
+            ),
+        )
+
+        # Libro centrado horizontalmente.
+        self.power_levels_book_x = 141
+
+        # Abierto: 112 + 68 = 180.
+        self.power_levels_book_open_y = 112
+
+        # Cerrado: quedan visibles 20 píxeles.
+        self.power_levels_book_closed_y = 155
+
+        self.power_levels_book_y = float(
+            self.power_levels_book_closed_y
+        )
+
+        self.power_levels_book_speed = 10.0
+
+
+        self.power_level_positions = [
+            # Página izquierda.
+            (15, 28),
+            (44, 28),
+            (15, 40),
+            (44, 40),
+            (15, 52),
+            (44, 52),
+
+            # Página derecha.
+            (78, 28),
+            (107, 28),
+            (78, 40),
+            (107, 40),
+            (78, 52),
+            (107, 52),
+        ]
+
+        self.power_level_hitboxes = []
+
+
+    def load_shop_assets(self, item_data, colorkey, size):
+        loaded_items = []
+
+        for item_id, data in item_data.items():
+            image_path = asset_path(*data["asset"].split("/"))
+
+            image = pygame.image.load(str(image_path)).convert()
+            image.set_colorkey(colorkey)
+            image = pygame.transform.scale(image, size)
+
+            loaded_items.append({
+                "id": item_id,
+                "image": image,
+                "path": str(image_path),
+            })
+
+        return loaded_items
+    
+
+    def build_shop_items(self, loaded_items, slots, price_data, can_appear=None, allow_duplicates=True, max_items=None):
+        shop_items = []
+
+        available_items = []
+
+        for item in loaded_items:
+            item_id = item["id"]
+
+            if item_id not in price_data:
+                continue
+
+            if can_appear is not None and not can_appear(item_id):
+                continue
+
+            available_items.append(item)
+
+        if not available_items:
+            return shop_items
+        
+        slot_count = len(slots)
+
+        if max_items is not None:
+            slot_count = min(slot_count, max_items)
+
+        if allow_duplicates:
+            items_to_show = [
+                random.choice(available_items)
+                for _ in range(slot_count)
+            ]
+        else:
+            items_to_show = random.sample(
+                available_items,
+                min(len(slots), len(available_items)),
+            )
+
+        slots_to_use = random.sample(slots, slot_count)
+
+        for slot, item_data in zip(slots_to_use, items_to_show):
+            rect = self.build_layout_rect(slot, (32, 32))
+
+            shop_items.append({
+                "id": item_data["id"],
+                "image": item_data["image"],
+                "price": price_data[item_data["id"]]["price"],
+                "rect": rect,
+            })
+
+        return shop_items
+
+
+    def load_price_image(self, price):
+        image = pygame.image.load(
+            asset_path("images", "prices", f"price_{price}.png")
+        ).convert_alpha()
+
+        return pygame.transform.scale(
+            image,
+            (19 * self.pixel_scale, 11 * self.pixel_scale),
+        )
+
+
+    def load_price_images(self):
+        return {
+            "powers": self.load_price_image(config.POWER_PRICE),
+            "potions": self.load_price_image(config.POTION_PRICE),
+            "books": self.load_price_image(config.BOOK_PRICE),
+        }
+    
+    def load_level_book_images(self):
+        images = {}
 
         for image_path in asset_path("images", "level_books").glob("*.png"):
             level_id = image_path.stem
 
             image = pygame.image.load(str(image_path)).convert_alpha()
-            image = pygame.transform.scale(image, (25 * self.pixel_scale, 10 * self.pixel_scale))
+            image = pygame.transform.scale(
+                image,
+                (25 * self.pixel_scale, 10 * self.pixel_scale),
+            )
 
-            self.level_book_images[level_id] = image
+            images[level_id] = image
 
-        self.level_book_positions = {
-            "lvl_fire": (166, 156),
-            "lvl_ice": (193, 156),
-            "lvl_fire_ice": (166, 168),
-        }
+        return images
+    
 
-        self.level_text_positions = {
-            "fire": (169, 156),
-            "ice": (196, 156),
-            "fire_ice": (169, 168),
-        }
+    def buy_item(self, item, items, apply_function):
+        if self.player.coins < item["price"]:
+            return
 
-        self.scaled_level_text_positions = {
-            key: self.scale_mixed_layout_point(point)
-            for key, point in self.level_text_positions.items()
-        }
+        apply_function(self.player, item["id"])
+        self.player.coins -= item["price"]
+        items.remove(item)
+
 
     def buy_potion(self, potion):
-        if self.player.coins < potion["price"]:
-            return
-        
-        self.apply_potion_effect(potion["id"])
-        self.player.coins -= potion["price"]
-        self.potions_in_shop.remove(potion)
+        self.buy_item(potion, self.potions_in_shop, apply_potion)
 
-    def apply_potion_effect(self, potion_id):
-        potion_data = config.POTION_DATA[potion_id]
-        stat = potion_data["stat"]
-        amount = potion_data["amount"]
-
-        if stat == "health":
-            self.player.health = min(self.player.max_health, self.player.health + amount)
-            return
-
-        current_value = getattr(self.player, stat)
-        setattr(self.player, stat, current_value + amount)
 
     def buy_book(self, book):
-        if self.player.coins < book["price"]:
-            return
-        
-        self.apply_book_effect(book["id"])
-        self.player.coins -= book["price"]
-        self.books_in_shop.remove(book)
+        self.buy_item(book, self.books_in_shop, apply_book)
 
-    def apply_book_effect(self, book_id):
+
+    def buy_power(self, power):
+        self.buy_item(power, self.powers_in_shop, apply_power)
+
+    
+    def try_buy_clicked_item(self, mouse_pos, items, buy_function):
+        for item in items[:]:
+            if item["rect"].collidepoint(mouse_pos):
+                buy_function(item)
+                return True
+
+        return False
+    
+
+    def get_owned_power_elements(self):
+        owned = set(self.player.base_bullet_elements)
+        owned.update(self.player.extra_bullet_element.keys())
+        return owned
+
+
+    def can_power_appear(self, power_id):
+        power_data = config.POWER_DATA[power_id]
+        category = power_data.get("category", "element")
+
+        if category == "shot_modifier":
+            return power_id not in self.player.shot_modifiers
+
+        owned_elements = self.get_owned_power_elements()
+        return power_data["element"] not in owned_elements
+    
+
+    def can_book_appear(self, book_id):
         effect = config.BOOK_DATA[book_id]["effect"]
+        owned_elements = self.get_owned_power_elements()
+
+        if "element" in effect:
+            return effect["element"] in owned_elements
 
         if "combo" in effect:
-            combo = effect["combo"]
+            combo_elements = set(effect["combo"].split("_"))
+            return combo_elements.issubset(owned_elements)
 
-            for stat, bonus in effect.items():
-                if stat == "combo":
-                    continue
+        return False
+    
+    def get_power_levels_book_rect(self):
+        x = (
+            self.offset_x
+            + self.power_levels_book_x * self.pixel_scale
+        )
 
-                self.player.combo_stats[combo][stat] += bonus
-            return
+        y = (
+            self.offset_y
+            + int(self.power_levels_book_y) * self.pixel_scale
+        )
 
-        element = effect["element"]
+        return self.power_levels_book.get_rect(topleft=(x, y))
+    
+    def update(self, dt):
+        mouse_pos = self.screen_to_virtual(pygame.mouse.get_pos())
+        book_rect = self.get_power_levels_book_rect()
 
-        for stat, bonus in effect.items():
-            if stat == "element":
-                continue
-
-            self.player.element_stats[element][stat] += bonus
-            
-    def buy_power(self, power):
-        if self.player.coins < power["price"]:
-            return
-
-        self.apply_power_effect(power["id"])
-        self.player.coins -= power["price"]
-        self.powers_in_shop.remove(power)
-
-    def apply_power_effect(self, power_id):
-        power_data = config.POWER_DATA[power_id]
-        element = power_data["element"]
-
-        if power_data["mode"] == "base":
-            if element not in self.player.base_bullet_elements:
-                self.player.base_bullet_elements.append(element)
+        if book_rect.collidepoint(mouse_pos):
+            target_y = self.power_levels_book_open_y
         else:
-            self.player.extra_bullet_element[element] = power_data["chance"]
+            target_y = self.power_levels_book_closed_y
+
+        animation_amount = min(
+            1.0,
+            self.power_levels_book_speed * dt,
+        )
+
+        self.power_levels_book_y += (
+            target_y - self.power_levels_book_y
+        ) * animation_amount
+
+        if abs(self.power_levels_book_y - target_y) < 0.1:
+            self.power_levels_book_y = float(target_y)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -294,20 +389,14 @@ class ShopScreen(BaseScreen):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mouse_pos = self.screen_to_virtual(event.pos)
 
-            for potion in self.potions_in_shop[:]:
-                if potion["rect"].collidepoint(mouse_pos):
-                    self.buy_potion(potion)
-                    break
+            if self.try_buy_clicked_item(mouse_pos, self.potions_in_shop, self.buy_potion):
+                return
 
-            for power in self.powers_in_shop[:]:
-                if power["rect"].collidepoint(mouse_pos):
-                    self.buy_power(power)
-                    break
+            if self.try_buy_clicked_item(mouse_pos, self.powers_in_shop, self.buy_power):
+                return
 
-            for book in self.books_in_shop[:]:
-                if book["rect"].collidepoint(mouse_pos):
-                    self.buy_book(book)
-                    break
+            if self.try_buy_clicked_item(mouse_pos, self.books_in_shop, self.buy_book):
+                return
 
     def screen_to_virtual(self, pos):
         mx, my = pos
@@ -316,9 +405,7 @@ class ShopScreen(BaseScreen):
             (my - self.game.render_offset_y) // self.game.render_scale,
         )
 
-    def draw(self, surface):
-        surface.blit(self.background, (self.offset_x, self.offset_y))
-
+    def draw_shop_items(self, surface):
         for potion in self.potions_in_shop:
             surface.blit(potion["image"], potion["rect"])
 
@@ -328,40 +415,129 @@ class ShopScreen(BaseScreen):
         for power in self.powers_in_shop:
             surface.blit(power["image"], power["rect"])
 
-        
-        self.player.visual.draw(surface, self.player.x, self.player.y)
-
-        self.player.draw_player_stats(surface, self.info_font, self.scaled_stat_positions)
-
-        rect_price_powers = self.price_powers.get_rect(center=self.scale_layout_point(self.price_positions["powers"]))
-        surface.blit(self.price_powers, rect_price_powers)
-
-        rect_price_potions = self.price_potions.get_rect(center=self.scale_layout_point(self.price_positions["potions"]))
-        surface.blit(self.price_potions, rect_price_potions)
-
-        rect_price_books = self.price_books.get_rect(center=self.scale_layout_point(self.price_positions["books"]))
-        surface.blit(self.price_books, rect_price_books)
-
-        for level_id, base_pos in self.level_book_positions.items():
-            image = self.level_book_images[level_id]
-            rect = self.build_mixed_layout_rect(base_pos, (25, 10))
+    
+    def draw_prices(self, surface):
+        for key, image in self.price_images.items():
+            rect = image.get_rect(
+                center=self.scale_layout_point(self.price_positions[key])
+            )
             surface.blit(image, rect)
-
-        level_texts = {
+    
+   
+    def get_level_texts(self):
+        return {
             "fire": f"lv:{self.player.element_stats['fire']['level']}",
             "ice": f"lv:{self.player.element_stats['ice']['level']}",
+            "electric": f"lv:{self.player.element_stats['electric']['level']}",
+            "poison": f"lv:{self.player.element_stats['poison']['level']}",
+
             "fire_ice": f"lv:{self.player.combo_stats['fire_ice']['level']}",
+            "fire_electric": f"lv:{self.player.combo_stats['fire_electric']['level']}",
+            "ice_electric": f"lv:{self.player.combo_stats['ice_electric']['level']}",
+            "fire_poison": f"lv:{self.player.combo_stats['fire_poison']['level']}",
+            "ice_poison": f"lv:{self.player.combo_stats['ice_poison']['level']}",
         }
+    
 
-        for key, text_value in level_texts.items():
-            text = self.info_font.render(text_value, True, config.HUD_COLOR)
-            cx, cy = self.scaled_level_text_positions[key]
+    def get_visible_power_level_ids(self):
+        visible_levels = []
+        previous_elements = []
 
-            text_rect = text.get_rect()
-            text_rect.x = cx - text_rect.width // 2
-            text_rect.y = cy - text_rect.height // 2
+        for element in self.player.power_element_order:
+            # Primero aparece el poder recién comprado.
+            visible_levels.append(element)
 
-            surface.blit(text, text_rect)
+            # Después aparecen sus combinaciones con poderes anteriores.
+            for previous_element in previous_elements:
+                combo_forward = f"{previous_element}_{element}"
+                combo_reverse = f"{element}_{previous_element}"
+
+                if combo_forward in self.player.combo_stats:
+                    visible_levels.append(combo_forward)
+                elif combo_reverse in self.player.combo_stats:
+                    visible_levels.append(combo_reverse)
+
+            previous_elements.append(element)
+
+        return visible_levels
+
+
+    def draw_power_levels_book(self, surface):
+        book_rect = self.get_power_levels_book_rect()
+
+        # Primero se dibuja el libro.
+        surface.blit(self.power_levels_book, book_rect)
+
+        level_texts = self.get_level_texts()
+
+        # Después se dibujan los poderes sobre sus páginas.
+        visible_level_ids = self.get_visible_power_level_ids()
+
+        self.power_level_hitboxes = []
+
+        for stat_id, local_position in zip(
+            visible_level_ids,
+            self.power_level_positions,
+        ):
+            image_id = f"lvl_{stat_id}"
+            local_x, local_y = local_position
+
+            level_image = self.level_book_images[image_id]
+
+            image_x = (
+                book_rect.x
+                + local_x * self.pixel_scale
+            )
+
+            image_y = (
+                book_rect.y
+                + local_y * self.pixel_scale
+            )
+
+            image_rect = level_image.get_rect(
+                topleft=(image_x, image_y)
+            )
+
+            self.power_level_hitboxes.append({
+                "id": stat_id,
+                "rect": image_rect,
+            })
+
+            surface.blit(level_image, image_rect)
+
+            level_text = self.info_font.render(
+                level_texts[stat_id],
+                True,
+                config.HUD_COLOR,
+            )
+
+            level_text_rect = level_text.get_rect(
+                center=(
+                    image_rect.centerx + 3 * self.pixel_scale,
+                    image_rect.centery,
+                )
+            )
+
+            surface.blit(level_text, level_text_rect)
+
+    def draw(self, surface):
+        surface.blit(self.background, (self.offset_x, self.offset_y))
+
+        self.draw_shop_items(surface)
+
+        self.player.visual.draw(surface, self.player.x, self.player.y)
+        self.player.draw_player_stats(surface, self.info_font, self.scaled_stat_positions)
+
+        self.draw_prices(surface)
+        self.draw_power_levels_book(surface)
+
+        mouse_pos = self.screen_to_virtual(pygame.mouse.get_pos())
+        item_type, item = self.get_hovered_shop_item(mouse_pos)
+
+        if item is not None:
+            title, body_lines, hint = self.get_tooltip_content(item_type, item)
+            style = self.get_tooltip_style(item_type, item)
+            self.draw_tooltip(surface, title, body_lines, hint, mouse_pos, style, item_type, item["id"])
 
 
     def scale_layout_point(self, base_point):
@@ -369,12 +545,7 @@ class ShopScreen(BaseScreen):
             self.offset_x + base_point[0] * self.pixel_scale + self.pixel_scale // 2,
             self.offset_y + base_point[1] * self.pixel_scale + self.pixel_scale // 2,
         )
-    
-    def scale_mixed_layout_point(self, base_point):
-        return (
-            self.offset_x + base_point[0] * self.pixel_scale + self.pixel_scale // 2,
-            self.offset_y + base_point[1] * self.pixel_scale,
-        )
+
     
     def build_layout_rect(self, base_center, base_size):
         width = base_size[0] * self.pixel_scale
@@ -385,11 +556,738 @@ class ShopScreen(BaseScreen):
         rect.y = self.offset_y + base_center[1] * self.pixel_scale - rect.height // 2
         return rect
 
-    def build_mixed_layout_rect(self, base_center, base_size):
-        width = base_size[0] * self.pixel_scale
-        height = base_size[1] * self.pixel_scale
+    
+    def get_hovered_shop_item(self, mouse_pos):
+        
+        for level_item in self.power_level_hitboxes:
+            if level_item["rect"].collidepoint(mouse_pos):
+                return "level", level_item
 
-        rect = pygame.Rect(0, 0, width, height)
-        rect.x = self.offset_x + base_center[0] * self.pixel_scale + self.pixel_scale // 2 - rect.width // 2
-        rect.y = self.offset_y + base_center[1] * self.pixel_scale - rect.height // 2
-        return rect
+        shop_groups = [
+            ("potion", self.potions_in_shop),
+            ("power", self.powers_in_shop),
+            ("book", self.books_in_shop),
+        ]
+
+        for item_type, items in shop_groups:
+            for item in items:
+                if item["rect"].collidepoint(mouse_pos):
+                    return item_type, item
+
+        return None, None
+    
+    
+    def get_power_level_tooltip_data(self, level_id):
+        if level_id in self.player.element_stats:
+            stats = self.player.element_stats[level_id].copy()
+        else:
+            stats = self.player.combo_stats[level_id].copy()
+
+        data = {
+            "text_key": f"item.level.{level_id}",
+            "tooltip_style": level_id,
+            **stats,
+        }
+
+        if level_id == "ice":
+            data["slow_percent"] = round(
+                (1 - stats["slow_multiplier"]) * 100
+            )
+
+        elif level_id == "electric":
+            data["chain_damage_percent"] = round(
+                stats["damage_percentage"] * 100
+            )
+
+        elif level_id == "poison":
+            data["damage_received_percent"] = round(
+                stats["damage_taken_per_stack"] * 100
+            )
+
+        elif level_id == "fire_electric":
+            data["fragment_damage_percent"] = round(
+                stats["damage_multiplier"] * 100
+            )
+
+        elif level_id == "ice_poison":
+            data["execute_base_percent"] = round(
+                stats["execute_base_threshold"] * 100
+            )
+            data["execute_stack_percent"] = round(
+                stats["execute_threshold_per_stack"] * 100
+            )
+
+        return data
+
+
+    def get_item_data(self, item_type, item_id):
+        if item_type == "potion":
+            return config.POTION_DATA[item_id]
+
+        if item_type == "power":
+            return config.POWER_DATA[item_id]
+
+        if item_type == "book":
+            return config.BOOK_DATA[item_id]
+        
+        if item_type == "level":
+            return self.get_power_level_tooltip_data(item_id)
+
+        return {}
+    
+
+    def get_tooltip_style(self, item_type, item):
+        item_data = self.get_item_data(item_type, item["id"])
+        style_id = item_data.get("tooltip_style", "default")
+        return config.TOOLTIP_STYLES.get(style_id, config.TOOLTIP_STYLES["default"])
+    
+
+    def measure_text_width(self, text):
+        return self.tooltip_font.render(text, True, (255, 255, 255)).get_width()
+
+
+    def wrap_text(self, text, max_width):
+        words = text.split()
+        lines = []
+        current = ""
+
+        for word in words:
+            candidate = word if not current else current + " " + word
+
+            if self.measure_text_width(candidate) <= max_width:
+                current = candidate
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+
+        if current:
+            lines.append(current)
+
+        return lines
+    
+
+    def format_tooltip_line(self, line, format_data):
+        for key, value in format_data.items():
+            line = line.replace(f"{{good:{key}}}", f"[good]{value}[/good]")
+            line = line.replace(f"{{bad:{key}}}", f"[bad]{value}[/bad]")
+
+        return line.format(**format_data)
+
+
+    def get_item_detail_lines(self, item_type, item_id, item_data):
+        detail_lines = self.game.localization.text(
+            f"item.{item_type}.{item_id}.detail",
+            [],
+        )
+
+        format_data = item_data.copy()
+
+        if "effect" in item_data:
+            format_data.update(item_data["effect"])
+
+        if "modifier" in item_data:
+            for field, modifier in item_data["modifier"].items():
+                format_data[field] = (
+                    modifier.get("value")
+                    if isinstance(modifier, dict)
+                    else modifier
+                )
+
+        if item_type == "book":
+            if item_id == "ice":
+                format_data["slow_percent"] = round(
+                    abs(format_data["slow_multiplier"]) * 100
+                )
+
+            elif item_id == "electric":
+                format_data["chain_damage_percent"] = round(
+                    format_data["damage_percentage"] * 100
+                )
+
+            elif item_id == "poison":
+                format_data["damage_received_percent"] = round(
+                    format_data["damage_taken_per_stack"] * 100
+                )
+
+            elif item_id == "fire_electric":
+                format_data["fragment_damage_percent"] = round(
+                    format_data["damage_multiplier"] * 100
+                )
+
+            elif item_id == "ice_poison":
+                format_data["execute_stack_percent"] = round(
+                    format_data["execute_threshold_per_stack"] * 100
+                )
+
+        if "chance" in format_data:
+            format_data["chance_percent"] = f"{int(format_data['chance'] * 100)}%"
+
+        return [
+            self.format_tooltip_line(line, format_data)
+            for line in detail_lines
+        ]
+        
+
+    def get_tooltip_content(self, item_type, item):
+        item_id = item["id"]
+        item_data = self.get_item_data(item_type, item_id)
+        text_key = item_data.get("text_key", f"item.{item_type}.{item_id}")
+
+        keys = pygame.key.get_pressed()
+        show_detail = keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]
+
+        title = self.game.localization.text(
+            f"{text_key}.name",
+            item_id.replace("_", " ").title(),
+        )
+
+        title = title.format(**item_data)
+
+        detail_lines = self.get_item_detail_lines(item_type, item_id, item_data)
+
+        if show_detail and detail_lines:
+            body_lines = detail_lines
+        else:
+            short = self.game.localization.text(f"{text_key}.short", "")
+            description = self.game.localization.text(f"{text_key}.description", short)
+
+            description = description.format(**item_data)
+
+            body_lines = [description]
+
+        hint = ""
+
+        if detail_lines:
+            hint_key = "ui.tooltip.release_shift" if show_detail else "ui.tooltip.hold_shift"
+            hint = self.game.localization.text(hint_key, "")
+
+        return title, body_lines, hint
+    
+    def draw_tooltip(self, surface, title, body_lines, hint, mouse_pos, style, item_type, item_id):
+        min_width = 110
+        max_width = 190
+
+        padding_x = 10
+        padding_y = 11
+
+        title_icon_gap = 6
+        title_bottom_gap = 4
+
+        separator_top_gap = 3
+        separator_bottom_gap = 5
+
+        body_line_gap = 2
+
+        hint_top_gap = 5
+        hint_line_gap = 2
+
+        icon_w = self.tooltip_icon_w
+        icon_h = self.tooltip_icon_h
+
+        max_text_width = max_width - padding_x * 2
+
+        title_surface = self.tooltip_font.render(
+            title,
+            True,
+            style["title"],
+        )
+
+        title_total_width = (
+            icon_w
+            + title_icon_gap
+            + title_surface.get_width()
+            + title_icon_gap
+            + icon_w
+        )
+
+        wrapped_body_lines = []
+        for line in body_lines:
+            wrapped_body_lines.extend(
+                self.wrap_text(line, max_text_width)
+            )
+
+        body_surfaces = [
+            self.render_tooltip_rich_line(line, style, item_type, item_id)
+            for line in wrapped_body_lines
+        ]
+
+        hint_surfaces = []
+        if hint:
+            wrapped_hint_lines = self.wrap_text(hint, max_text_width)
+            hint_surfaces = [
+                self.tooltip_font.render(line, True, style["accent"])
+                for line in wrapped_hint_lines
+            ]
+
+        max_line_width = 0
+
+        for text_surface in body_surfaces:
+            max_line_width = max(max_line_width, text_surface.get_width())
+
+        for text_surface in hint_surfaces:
+            max_line_width = max(max_line_width, text_surface.get_width())
+
+        content_width = max(
+            title_total_width,
+            max_line_width,
+            min_width - padding_x * 2,
+        )
+
+        content_width = min(content_width, max_text_width)
+        tooltip_width = content_width + padding_x * 2
+
+        tooltip_height = padding_y
+        tooltip_height += title_surface.get_height()
+        tooltip_height += title_bottom_gap
+        tooltip_height += separator_top_gap
+        tooltip_height += 1
+        tooltip_height += separator_bottom_gap
+
+        if body_surfaces:
+            for text_surface in body_surfaces:
+                tooltip_height += text_surface.get_height()
+                tooltip_height += body_line_gap
+
+            tooltip_height -= body_line_gap
+
+        if hint_surfaces:
+            tooltip_height += hint_top_gap
+            tooltip_height += 1
+            tooltip_height += hint_line_gap
+
+            for text_surface in hint_surfaces:
+                tooltip_height += text_surface.get_height()
+                tooltip_height += body_line_gap
+
+            tooltip_height -= body_line_gap
+
+        tooltip_height += padding_y
+
+        x = mouse_pos[0] + 8
+        y = mouse_pos[1] + 8
+
+        if x + tooltip_width > surface.get_width():
+            x = mouse_pos[0] - tooltip_width - 8
+
+        if y + tooltip_height > surface.get_height():
+            y = surface.get_height() - tooltip_height - 4
+
+        x = max(4, x)
+        y = max(4, y)
+
+        rect = pygame.Rect(x, y, tooltip_width, tooltip_height)
+
+        self.draw_parchment_box(
+            surface,
+            rect,
+            style,
+            seed=title,
+        )
+
+        current_y = rect.y + padding_y
+
+        title_group_x = rect.centerx - title_total_width // 2
+        title_x = title_group_x + icon_w + title_icon_gap
+        icon_y = current_y + (title_surface.get_height() - icon_h) // 2
+
+        self.draw_tooltip_icon(
+            surface,
+            title_group_x,
+            icon_y,
+            style["icon_left"],
+        )
+
+        surface.blit(
+            title_surface,
+            (title_x, current_y),
+        )
+
+        self.draw_tooltip_icon(
+            surface,
+            title_x + title_surface.get_width() + title_icon_gap,
+            icon_y,
+            style["icon_right"],
+        )
+
+        current_y += title_surface.get_height()
+        current_y += title_bottom_gap
+        current_y += separator_top_gap
+
+        self.draw_tooltip_separator(
+            surface,
+            rect.x + padding_x,
+            current_y,
+            rect.width - padding_x * 2,
+            style,
+            "big",
+        )
+
+        current_y += 1
+        current_y += separator_bottom_gap
+
+        for text_surface in body_surfaces:
+            surface.blit(
+                text_surface,
+                (rect.x + padding_x, current_y),
+            )
+
+            current_y += text_surface.get_height()
+            current_y += body_line_gap
+
+        if hint_surfaces:
+            current_y += hint_top_gap
+
+            self.draw_tooltip_separator(
+                surface,
+                rect.x + padding_x,
+                current_y,
+                rect.width - padding_x * 2,
+                style,
+                "small",
+            )
+
+            current_y += 1
+            current_y += hint_line_gap
+
+            for text_surface in hint_surfaces:
+                surface.blit(
+                    text_surface,
+                    (rect.x + padding_x, current_y),
+                )
+
+                current_y += text_surface.get_height()
+                current_y += body_line_gap
+
+
+    def render_tooltip_rich_line(self, text, style, item_type, item_id):
+        normal_color = style["text"]
+        positive_color = style.get("positive", (35, 90, 45))
+        negative_color = style.get("negative", (120, 35, 35))
+
+
+        parts = re.split(r"(\[good\].*?\[/good\]|\[bad\].*?\[/bad\]|[+-]?\d+(?:\.\d+)?%?)", text)
+
+        rendered_parts = []
+
+        for part in parts:
+            if part == "":
+                continue
+
+            color = normal_color
+
+            if part.startswith("[good]") and part.endswith("[/good]"):
+                part = part.replace("[good]", "").replace("[/good]", "")
+                color = positive_color
+
+            elif part.startswith("[bad]") and part.endswith("[/bad]"):
+                part = part.replace("[bad]", "").replace("[/bad]", "")
+                color = negative_color
+
+            elif re.fullmatch(r"[+-]?\d+(?:\.\d+)?%?", part):
+                if part.startswith("-"):
+                    color = negative_color
+                else:
+                    color = positive_color
+
+            rendered_parts.append((
+                self.tooltip_font.render(part, True, color),
+                part,
+            ))
+
+        part_gap = self.pixel_scale
+
+        width = sum(
+            part_surface.get_width()
+            for part_surface, part_text in rendered_parts
+        )
+
+        width += max(0, len(rendered_parts) - 1) * part_gap
+
+        height = max(
+            (
+                part_surface.get_height()
+                for part_surface, part_text in rendered_parts
+            ),
+            default=1,
+        )
+
+        line_surface = pygame.Surface(
+            (max(1, width), height),
+            pygame.SRCALPHA,
+        )
+
+        x = 0
+
+        for index, (part_surface, part_text) in enumerate(rendered_parts):
+            if index > 0:
+                x += part_gap
+
+            line_surface.blit(part_surface, (x, 0))
+            x += part_surface.get_width()
+
+        return line_surface
+
+    def draw_parchment_box(self, surface, rect, style, seed="tooltip"):
+        rng = random.Random(f"{seed}-{rect.width}-{rect.height}")
+
+        border_points = self.build_torn_paper_points(rect, rng)
+
+        local_points = [
+            (x - rect.x, y - rect.y)
+            for x, y in border_points
+        ]
+
+        border_surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+
+        pygame.draw.lines(
+            border_surface,
+            style["border"],
+            True,
+            local_points,
+            2,
+        )
+
+        interior_mask = self.create_tooltip_interior_mask(border_surface)
+
+        bg_surface = interior_mask.to_surface(
+            setcolor=(*style["bg"], 255),
+            unsetcolor=(0, 0, 0, 0),
+        ).convert_alpha()
+
+        surface.blit(bg_surface, rect.topleft)
+        surface.blit(border_surface, rect.topleft)
+
+    def create_tooltip_interior_mask(self, border_surface):
+        width = border_surface.get_width()
+        height = border_surface.get_height()
+
+        border_mask = pygame.mask.from_surface(border_surface)
+        interior_mask = pygame.mask.Mask((width, height), False)
+
+        start = (width // 2, height // 2)
+
+        if border_mask.get_at(start):
+            start = self.find_tooltip_fill_start(border_mask, width, height, start)
+
+        queue = [start]
+        head = 0
+        interior_mask.set_at(start, 1)
+
+        while head < len(queue):
+            x, y = queue[head]
+            head += 1
+
+            neighbors = [
+                (x + 1, y),
+                (x - 1, y),
+                (x, y + 1),
+                (x, y - 1),
+            ]
+
+            for next_x, next_y in neighbors:
+                if next_x < 0 or next_x >= width:
+                    continue
+
+                if next_y < 0 or next_y >= height:
+                    continue
+
+                point = (next_x, next_y)
+
+                if border_mask.get_at(point):
+                    continue
+
+                if interior_mask.get_at(point):
+                    continue
+
+                interior_mask.set_at(point, 1)
+                queue.append(point)
+
+        return interior_mask
+    
+
+    def find_tooltip_fill_start(self, border_mask, width, height, start):
+        start_x, start_y = start
+
+        for radius in range(1, max(width, height)):
+            for y in range(start_y - radius, start_y + radius + 1):
+                for x in range(start_x - radius, start_x + radius + 1):
+                    if x < 0 or x >= width:
+                        continue
+
+                    if y < 0 or y >= height:
+                        continue
+
+                    point = (x, y)
+
+                    if not border_mask.get_at(point):
+                        return point
+
+        return start
+
+
+    def inset_tooltip_points(self, points, rect, amount):
+        inset = []
+
+        for x, y in points:
+            new_x = x
+            new_y = y
+
+            if x <= rect.left + amount:
+                new_x += amount
+            elif x >= rect.right - amount:
+                new_x -= amount
+
+            if y <= rect.top + amount:
+                new_y += amount
+            elif y >= rect.bottom - amount:
+                new_y -= amount
+
+            inset.append((new_x, new_y))
+
+        return inset
+
+
+    def draw_tooltip_icon(self, surface, x, y, icon_id):
+        icon = self.tooltip_icons.get(icon_id)
+
+        if icon is not None:
+            surface.blit(icon, (x, y))
+
+    def draw_tooltip_separator(self, surface, x, y, width, style, size):
+        color = style["accent"]
+
+        ornament_width = 5
+        gap = 3
+        height = y-3
+
+        left_x = x
+        right_x = x + width - ornament_width
+
+        line_start = left_x
+        line_end = right_x + gap
+
+        pygame.draw.line(
+            surface,
+            color,
+            (line_start, height),
+            (line_end, height),
+            1,
+        )
+
+        if size == "big":
+            self.draw_separator_s(
+                surface,
+                left_x - 1,
+                height - 3,
+                color,
+                flipped=False,
+            )
+
+            self.draw_separator_s(
+                surface,
+                right_x + gap,
+                height - 3,
+                color,
+                flipped=True,
+            )
+
+
+    def draw_separator_s(self, surface, x, y, color, flipped=False):
+        points = [
+            (1, 0), (2, 0),
+            (0, 1), (0, 2),
+            (1, 3), (1, 4),
+            (2, 5), (2, 6),
+            (0, 7), (1, 7),
+        ]
+
+        if flipped:
+            points = [
+                (2 - px, py)
+                for px, py in points
+            ]
+
+        for px, py in points:
+            surface.set_at((x + px, y + py), color)
+
+
+    def build_torn_paper_points(self, rect, rng):
+        margin = 2
+        step = 12
+        jitter = 1
+        notch_chance = 0.15
+        notch_depth = 2
+
+        points = []
+
+        # Arriba
+        x = rect.left + margin
+        while x < rect.right - margin:
+            y = rect.top + margin + rng.randint(-jitter, jitter)
+            points.append((x, y))
+
+            if rng.random() < notch_chance:
+                points.append((x + step // 2, y + notch_depth))
+
+            x += step + rng.randint(-3, 3)
+
+        points.append((rect.right - margin, rect.top + margin))
+
+        # Derecha
+        y = rect.top + margin
+        while y < rect.bottom - margin:
+            x = rect.right - margin + rng.randint(-jitter, jitter)
+            points.append((x, y))
+
+            if rng.random() < notch_chance:
+                points.append((x - notch_depth, y + step // 2))
+
+            y += step + rng.randint(-3, 3)
+
+        points.append((rect.right - margin, rect.bottom - margin))
+
+        # Abajo
+        x = rect.right - margin
+        while x > rect.left + margin:
+            y = rect.bottom - margin + rng.randint(-jitter, jitter)
+            points.append((x, y))
+
+            if rng.random() < notch_chance:
+                points.append((x - step // 2, y - notch_depth))
+
+            x -= step + rng.randint(-3, 3)
+
+        points.append((rect.left + margin, rect.bottom - margin))
+
+        # Izquierda
+        y = rect.bottom - margin
+        while y > rect.top + margin:
+            x = rect.left + margin + rng.randint(-jitter, jitter)
+            points.append((x, y))
+
+            if rng.random() < notch_chance:
+                points.append((x + notch_depth, y - step // 2))
+
+            y -= step + rng.randint(-3, 3)
+
+        points.append((rect.left + margin, rect.top + margin))
+
+        return points
+    
+    def load_tooltip_icons(self):
+        icons = {}
+
+        for icon_id in ["fire", "ice", "electric", "poison"]:
+            image = pygame.image.load(
+                asset_path("images", "ui", "tooltip_icons", f"{icon_id}.png")
+            ).convert_alpha()
+
+            image = pygame.transform.scale(
+                image,
+                (self.tooltip_icon_w, self.tooltip_icon_h),
+            )
+
+            icons[icon_id] = image
+
+        return icons

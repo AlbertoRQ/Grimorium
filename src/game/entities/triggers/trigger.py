@@ -4,8 +4,6 @@ import pygame
 
 from game import config
 
-from game.entities.items.item_data import ITEM_DEFINITIONS 
-
 
 class Trigger:
     def __init__(self, rect):

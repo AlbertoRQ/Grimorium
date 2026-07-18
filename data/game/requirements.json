@@ -1,0 +1,98 @@
+[
+  {
+    "owner_type": "book",
+    "owner_id": "fire",
+    "requirement_type": "power_owned",
+    "requirement_id": "fire"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice",
+    "requirement_type": "power_owned",
+    "requirement_id": "ice"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric",
+    "requirement_type": "power_owned",
+    "requirement_id": "electric"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "poison"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_ice",
+    "requirement_type": "power_owned",
+    "requirement_id": "fire"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_ice",
+    "requirement_type": "power_owned",
+    "requirement_id": "ice"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_electric",
+    "requirement_type": "power_owned",
+    "requirement_id": "fire"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_electric",
+    "requirement_type": "power_owned",
+    "requirement_id": "electric"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "requirement_type": "power_owned",
+    "requirement_id": "ice"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "requirement_type": "power_owned",
+    "requirement_id": "electric"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "fire"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "poison"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "ice"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "poison"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "electric"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison",
+    "requirement_type": "power_owned",
+    "requirement_id": "poison"
+  }
+]

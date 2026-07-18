@@ -14,7 +14,7 @@ class BasicBoss(Enemy):
 
         super().__init__(
             (config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2),
-            200,
+            50,
             health,
             config.BOSS_RADIUS,
             config.ENEMY_COLOR,
@@ -25,6 +25,8 @@ class BasicBoss(Enemy):
         self.body_damage = config.BOSS_BODY_DAMAGE
         self.regen = regen
         self.direction_x = 1
+
+        self.is_boss = True
 
         self.visual = AnimatedVisual(
             image_folder="enemies/rat",
@@ -82,7 +84,7 @@ class BasicBoss(Enemy):
         text_rect = text.get_rect(center=background_rect.center)
         surface.blit(text, text_rect)
 
-    def move(self, player, dt, blockers, entities):
+    def move(self, player, dt, blockers, entities, room=None):
         old_x = self.x
         old_y = self.y
 
@@ -101,8 +103,9 @@ class BasicBoss(Enemy):
         
 
 
-    def update(self, player, dt, blockers, entities):
-        super().update(player, dt, blockers, entities)
+    def update(self, player, dt, blockers, entities, room=None):
+        super().update(player, dt, blockers, entities, room)
+        self.health = min(self.max_health, self.health + self.regen * dt)
 
 
     def draw(self, surface):

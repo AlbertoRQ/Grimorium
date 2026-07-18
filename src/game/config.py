@@ -1,8 +1,4 @@
-"""Configuracion global del juego.
-
-Es la misma idea que ya tenias en `estructura_simple/ajustes.py`,
-pero puesta dentro de la estructura por carpetas.
-"""
+from game.systems.content_loader import load_shop_content
 
 SCREEN_WIDTH = 1280     # 3840, 2560, 1920, 1280
 SCREEN_HEIGHT = 720    # 2160, 1440, 1080, 720 
@@ -10,28 +6,26 @@ FPS = 60
 WINDOW_TITLE = "Grimorium"
 
 ROOM_CELL_SIZE = 32
-WALL_THICKNESS = 8
 
 BACKGROUND_COLOR = (30, 30, 40)
 PLAYER_COLOR = (80, 220, 120)
 PLAYER_COLOR_INVENCIBLE = (160, 255, 180)
-BULLET_COLOR = (218, 245, 244)
 ENEMY_COLOR = (220, 90, 90)
 ENEMY_BULLET_COLOR = (220, 30, 30)
 HUD_COLOR = (255, 255, 255)
-BUTTON_COLOR = (60, 70, 85)
-BUTTON_HOVER_COLOR = (85, 100, 120)
+
 
 PLAYER_RADIUS = 12
 
 PLAYER_SPEED = 100
-PLAYER_MAX_HEALTH = 4
+PLAYER_MAX_HEALTH = 3
 PLAYER_FIRE_COOLDOWN = 0.45
 PLAYER_DAMAGE = 1
 PLAYER_BODY_DAMAGE = 0
 PLAYER_LUCK = 0
 PLAYER_SHOOT_DISTANCE = 120
 PLAYER_INVULNERABILITY_TIME = 1
+PLAYER_COINS = 1000
 
 
 FORWARD_BONUS = 40
@@ -40,205 +34,161 @@ SIDE_DRIFT = 47
 BULLET_RADIUS = 3
 BULLET_SPEED = 180
 BULLET_DAMAGE = 1
-BULLET_RATE = 1
+
 
 ENEMY_RADIUS = 10
 ENEMY_SPEED = 45
-ENEMY_MAX_HEALTH = 5
-ENEMY_SPAWN_INTERVAL = 2.0
+ENEMY_MAX_HEALTH = 3
 ENEMY_DAMAGE = 1
 ENEMY_BODY_DAMAGE = 1
 
-SHOOTER_ENEMY_RADIUS = 18
-SHOOTER_ENEMY_SPEED = 40
 SHOOTER_ENEMY_BULLET_SPEED = 115
 SHOOTER_ENEMY_FIRE_COOLDOWN = 3
-SHOOTER_ENEMY_COLOR = (200, 50, 200)
 SHOOTER_ENEMY_SHOOT_DISTANCE = 120
 
 BOSS_MAX_HEALTH = 100
 BOSS_RADIUS = 24
-BOSS_REGEN = 2
+BOSS_REGEN = 0 #0.5
 BOSS_DAMAGE = 1
 BOSS_BODY_DAMAGE = 2
 
-# Se quedan definidas para no romper nada si luego reutilizas
-# archivos del esqueleto anterior.
-SPREAD_BULLET_COUNT = 3
-SPREAD_ANGLE_STEP = 12
-PIERCING_BULLET_DAMAGE = 1
-PIERCING_BULLET_PENETRATION = 3
-TANK_ENEMY_RADIUS = 26
-TANK_ENEMY_SPEED = 90
-TANK_ENEMY_MAX_HEALTH = 3
-SPAWN_INTERVAL = ENEMY_SPAWN_INTERVAL
+
 FONT_SIZE = 20
 FONT_FAMILY = "pixel"
 PIXEL_FONT_IMAGE = "3x5light.png"
-
-WIDTH, HEIGHT = 800, 600
-
-
-COLORS_LIST = {
-    "blanco": (255, 255, 255),
-    "negro": (0, 0, 0),
-    "rojo": (255, 0, 0),
-    "verde": (0, 255, 0),
-    "azul": (0, 0, 255),
-    "amarillo": (255, 255, 0),
-    "gris": (128, 128, 128)
-}
 
 
 RUN_PATTERN = [
     "normal",
     "shop",
     "normal",
+        "shop",
     "normal",
     "shop",
     "normal",
+        "shop",
     "normal",
     "shop",
     "boss",
     "shop",
 ]
 
-POTION_PRICE = 5
-POTION_DATA = {
-    "health": {
-        "stat": "health",
-        "amount": 1000,
-        "price": POTION_PRICE,
-    },
-    "speed": {
-        "stat": "speed",
-        "amount": 25,
-        "price": POTION_PRICE,
-    },
-    "damage": {
-        "stat": "damage",
-        "amount": 0.5,
-        "price": POTION_PRICE,
-    },
-    "body_damage": {
-        "stat": "body_damage",
-        "amount": 0.5,
-        "price": POTION_PRICE,
-    },
-    "speed_atack": {
-        "stat": "fire_rate",
-        "amount": -0.025,
-        "price": POTION_PRICE,
-    },
-    "luck": {
-        "stat": "luck",
-        "amount": 1,
-        "price": POTION_PRICE,
-    },
-    "shoot_distance": {
-        "stat": "shoot_distance",
-        "amount": 5,
-        "price": POTION_PRICE,
-    } 
-}
+POTION_DATA, POWER_DATA, BOOK_DATA = load_shop_content()
+POTION_PRICE = next(iter(POTION_DATA.values()))["price"]
+POWER_PRICE = next(iter(POWER_DATA.values()))["price"]
+BOOK_PRICE = next(iter(BOOK_DATA.values()))["price"]
 
-POWER_PRICE = 10
-POWER_DATA = {
+
+TOOLTIP_STYLES = {
+    "default": {
+        "bg": (224, 190, 126),
+        "border": (72, 43, 25),
+        "title": (78, 43, 34),
+        "text": (75, 55, 40),
+        "accent": (140, 82, 42),
+        "icon_left": "diamond",
+        "icon_right": "diamond",
+        "positive": (38, 92, 45),
+        "negative": (125, 38, 34),
+    },
+
     "fire": {
-        "mode": "base",
-        "element": "fire",
-        "chance": 1.0,
-        "price": POWER_PRICE,
+        "bg": (232, 181, 113),
+        "border": (92, 39, 24),
+        "title": (135, 45, 24),
+        "text": (70, 45, 35),
+        "accent": (180, 70, 32),
+        "icon_left": "fire",
+        "icon_right": "fire",
     },
-    "ice": {
-        "mode": "extra",
-        "element": "ice",
-        "chance": 0.50,
-        "price": POWER_PRICE,
-    },
-}
 
-BOOK_PRICE = 5
-
-BOOK_DATA = {
-    "fire": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "fire",
-            "level": 1,
-            "burn_damage": 0.2,
-            "burn_duration": 1.0,
-        },
-    },
     "ice": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "ice",
-            "level": 1,
-            "slow_duration": 0.2,
-            "slow_multiplier": -0.1,
-            "ice_duration": 0.2,
-        },
+        "bg": (214, 198, 145),
+        "border": (57, 67, 72),
+        "title": (56, 91, 106),
+        "text": (61, 58, 49),
+        "accent": (83, 130, 148),
+        "icon_left": "ice",
+        "icon_right": "ice",
     },
+
     "electric": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "electric",
-            "shock_damage": 1.0,
-        },
+        "bg": (229, 197, 121),
+        "border": (82, 61, 25),
+        "title": (124, 86, 22),
+        "text": (68, 56, 37),
+        "accent": (180, 130, 30),
+        "icon_left": "electric",
+        "icon_right": "electric",
     },
+
+    "poison": {
+        "bg": (220, 188, 139),
+        "border": (67, 48, 76),
+        "title": (96, 58, 122),
+        "text": (64, 52, 58),
+        "accent": (135, 78, 160),
+        "icon_left": "poison",
+        "icon_right": "poison",
+    },
+
     "fire_ice": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "combo": "fire_ice",
-            "level": 1,
-            "damage_multiplier": 1,
-        },
+        "bg": (232, 181, 113),
+        "border": (92, 39, 24),
+        "title": (135, 45, 24),
+        "text": (61, 58, 49),
+        "accent": (83, 130, 148),
+        "icon_left": "fire",
+        "icon_right": "ice",
     },
+
     "fire_electric": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "fire",
-            "burn_damage": 0.3,
-            "burn_duration": 1.0,
-        },
+        "bg": (232, 181, 113),
+        "border": (92, 39, 24),
+        "title": (135, 45, 24),
+        "text": (68, 56, 37),
+        "accent": (180, 130, 30),
+        "icon_left": "fire",
+        "icon_right": "electric",
     },
-    "fire_potion": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "fire",
-            "burn_damage": 0.2,
-            "burn_duration": 1.0,
-        },
-    },
+
     "ice_electric": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "ice",
-            "slow_duration": 1.0,
-            "slow_multiplier": 0.1,
-        },
+        "bg": (214, 198, 145),
+        "border": (57, 67, 72),
+        "title": (56, 91, 106),
+        "text": (68, 56, 37),
+        "accent": (180, 130, 30),
+        "icon_left": "ice",
+        "icon_right": "electric",
     },
-    "potion_electric": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "electric",
-            "shock_damage": 1.5,
-        },
+
+    "fire_poison": {
+        "bg": (232, 181, 113),
+        "border": (92, 39, 24),
+        "title": (135, 45, 24),
+        "text": (64, 52, 58),
+        "accent": (135, 78, 160),
+        "icon_left": "poison",
+        "icon_right": "fire",
     },
-    "potion_ice": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "ice",
-            "slow_duration": 1.2,
-            "slow_multiplier": 0.1,
-        },
+
+    "ice_poison": {
+        "bg": (214, 198, 145),
+        "border": (57, 67, 72),
+        "title": (56, 91, 106),
+        "text": (64, 52, 58),
+        "accent": (135, 78, 160),
+        "icon_left": "ice",
+        "icon_right": "poison",
     },
-    "potion": {
-        "price": BOOK_PRICE,
-        "effect": {
-            "element": "fire",
-            "burn_duration": 0.5,
-        },
+
+    "electric_poison": {
+        "bg": (229, 197, 121),
+        "border": (82, 61, 25),
+        "title": (124, 86, 22),
+        "text": (64, 52, 58),
+        "accent": (135, 78, 160),
+        "icon_left": "electric",
+        "icon_right": "poison",
     },
 }

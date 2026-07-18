@@ -8,6 +8,8 @@ import math
 from game.systems.effect_handlers import ELEMENT_EFFECTS
 from game.systems.element_combos import ELEMENTAL_COMBOS
 
+from game.systems.poison_cloud import PoisonCloud
+
 
 def circles_collide(a, b):
     distance = math.hypot(a.x - b.x, a.y - b.y)
@@ -75,10 +77,33 @@ def try_apply_combo(bullet, enemy, element, hit_damage):
 
     return False
 
+def create_poison_cloud_if_needed(bullet, enemy):
+    burn = enemy.status_effects["burn"]
+    poison = enemy.status_effects["poison"]
+
+    if poison["stacks"] <= 0:
+        return None
+
+    if burn["timer"] <= 0:
+        return None
+
+    combo_data = bullet.effect_data.get(
+        "combos",
+        {},
+    ).get("fire_poison")
+
+    poison_data = bullet.effect_data.get("poison")
+
+    if combo_data is None or poison_data is None:
+        return None
+
+    return PoisonCloud(enemy.x, enemy.y, combo_data, poison_data)
+
 def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multiplier=1):
     bullets_left = []
     enemies_left = enemies[:]
     points_gained = 0
+    created_effects = []
 
     for bullet in bullets:
         bullet_hit = False
@@ -100,11 +125,19 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multipl
 
                     effect = ELEMENT_EFFECTS.get(element)
                     if effect is not None:
-                        effect(bullet, enemy)
+                        created_effect = effect(bullet, enemy, enemies_left, damage)
+
+                        if created_effect is not None:
+                            created_effects.append(created_effect)
 
                 bullet_hit = True
 
                 if enemy.is_dead():
+                    created_effect = create_poison_cloud_if_needed(bullet, enemy)
+
+                    if created_effect is not None:
+                        created_effects.append(created_effect)
+
                     enemies_left.remove(enemy)
                     points_gained += 0
 
@@ -113,7 +146,7 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multipl
         if not bullet_hit:
             bullets_left.append(bullet)
 
-    return bullets_left, enemies_left, points_gained
+    return bullets_left, enemies_left, points_gained, created_effects
 
 def resolve_enemy_bullets_vs_player(enemy_bullets, player):
     bullets_left = []

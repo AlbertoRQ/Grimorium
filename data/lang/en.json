@@ -1,0 +1,282 @@
+{
+  "item": {
+    "book": {
+      "electric": {
+        "detail": [
+          "Chain dmg: +{good:chain_damage_percent}%",
+          "Jump distance: +{good:max_jump_distance}"
+        ],
+        "name": "Electric Book",
+        "short": "Improves electric jumps between enemies"
+      },
+      "electric_poison": {
+        "detail": [
+          "Add the first combo value here",
+          "Add the second combo value here"
+        ],
+        "name": "Conductive Toxin Book",
+        "short": "Improves the electricity and poison combo"
+      },
+      "fire": {
+        "detail": [
+          "Dmg per tick: +{good:burn_damage}",
+          "Duration: +{good:burn_duration}s"
+        ],
+        "name": "Fire Book",
+        "short": "Increases burn damage and duration"
+      },
+      "fire_electric": {
+        "detail": [
+          "Dmg per fragment: +{good:fragment_damage_percent}%",
+          "Range: +{good:fragment_range}"
+        ],
+        "name": "Ignited Sparks Book",
+        "short": "Improves fragments created by fire and electricity"
+      },
+      "fire_ice": {
+        "detail": [
+          "Additional multiplier: +x{good:damage_multiplier}"
+        ],
+        "name": "Thermal Shock Book",
+        "short": "Increases damage when breaking ice"
+      },
+      "fire_poison": {
+        "detail": [
+          "Cloud radius: +{good:cloud_radius}",
+          "Duration: +{good:cloud_duration}s"
+        ],
+        "name": "Corrosive Cloud Book",
+        "short": "Improves the cloud created by fire and poison"
+      },
+      "ice": {
+        "detail": [
+          "Slow: +{good:slow_percent}%",
+          "Slow duration: +{good:slow_duration}s",
+          "Freeze duration: +{good:ice_duration}s"
+        ],
+        "name": "Ice Book",
+        "short": "Improves slowing and freezing"
+      },
+      "ice_electric": {
+        "detail": [
+          "Puddle size: +x{good:puddle_size_multiplier}",
+          "Puddle duration: +{good:puddle_duration_bonus}s",
+          "Electrified duration: +{good:electric_duration}s",
+          "Dmg per tick: +{good:tick_damage}"
+        ],
+        "name": "Frozen Storm Book",
+        "short": "Improves the electrified puddle"
+      },
+      "ice_poison": {
+        "detail": [
+          "Fragility duration: +{good:fragile_duration}s",
+          "Execution threshold per stack: +{good:execute_stack_percent}%"
+        ],
+        "name": "Toxic Fragility Book",
+        "short": "Improves execution against fragile enemies"
+      },
+      "poison": {
+        "detail": [
+          "Dmg taken per stack: +{good:damage_received_percent}%",
+          "Duration against bosses: +{good:boss_duration}s"
+        ],
+        "name": "Poison Book",
+        "short": "Increases stacked poison damage"
+      }
+    },
+    "level": {
+      "electric": {
+        "detail": [
+          "Chain dmg: {good:chain_damage_percent}%",
+          "Jump distance: {good:max_jump_distance}"
+        ],
+        "name": "Electricity - Level {level}",
+        "short": "Chains dmg between enemies"
+      },
+      "fire": {
+        "detail": [
+          "Dmg per tick: {good:burn_damage}",
+          "Duration: {good:burn_duration}s"
+        ],
+        "name": "Fire - Level {level}",
+        "short": "Burns on hit"
+      },
+      "fire_electric": {
+        "detail": [
+          "Dmg per fragment: {good:fragment_damage_percent}%",
+          "Range: {good:fragment_range}"
+        ],
+        "name": "Blazing Sparks - Level {level}",
+        "short": "Embedded shots burst into fragments"
+      },
+      "fire_ice": {
+        "detail": [
+          "Additional multiplier: x{good:damage_multiplier}"
+        ],
+        "name": "Thermal Shock - Level {level}",
+        "short": "Breaking a freeze deals additional damage"
+      },
+      "fire_poison": {
+        "detail": [
+          "Cloud radius: {good:cloud_radius}",
+          "Duration: {good:cloud_duration}s"
+        ],
+        "name": "Corrosive Cloud - Level {level}",
+        "short": "Burning enemies release poison clouds"
+      },
+      "ice": {
+        "detail": [
+          "Slow: {good:slow_percent}%",
+          "Slow duration: {good:slow_duration}s",
+          "Freeze duration: {good:ice_duration}s"
+        ],
+        "name": "Ice - Level {level}",
+        "short": "Slows and freezes on hit"
+      },
+      "ice_electric": {
+        "detail": [
+          "Puddle size: x{good:puddle_size_multiplier}",
+          "Puddle duration: {good:puddle_duration_bonus}s",
+          "Electrified duration: {good:electric_duration}s",
+          "Dmg per tick: {good:tick_damage}"
+        ],
+        "name": "Frozen Storm - Level {level}",
+        "short": "Freezing creates an electrified puddle"
+      },
+      "ice_poison": {
+        "detail": [
+          "Fragility duration: {good:fragile_duration}s",
+          "Base execution threshold: {good:execute_base_percent}%",
+          "Execution threshold per stack: {good:execute_stack_percent}%"
+        ],
+        "name": "Toxic Fragility - Level {level}",
+        "short": "Poison can execute frozen enemies"
+      },
+      "poison": {
+        "detail": [
+          "Dmg taken per stack: {good:damage_received_percent}%",
+          "Duration against bosses: {good:boss_duration}s"
+        ],
+        "name": "Poison - Level {level}",
+        "short": "Poison increases damage taken"
+      }
+    },
+    "potion": {
+      "body_damage": {
+        "detail": [
+          "+{amount} contact dmg"
+        ],
+        "name": "Contact Potion",
+        "short": "Increases contact damage"
+      },
+      "damage": {
+        "detail": [
+          "+{amount} shot dmg"
+        ],
+        "name": "Damage Potion",
+        "short": "Increases your shot damage"
+      },
+      "health": {
+        "detail": [
+          "Restores all your health"
+        ],
+        "name": "Health Potion",
+        "short": "Restores all your health"
+      },
+      "luck": {
+        "detail": [
+          "+{amount} luck"
+        ],
+        "name": "Luck Potion",
+        "short": "Increases your luck"
+      },
+      "shoot_distance": {
+        "detail": [
+          "+{amount} shot range"
+        ],
+        "name": "Range Potion",
+        "short": "Increases your shot range"
+      },
+      "speed": {
+        "detail": [
+          "+{amount} movement speed"
+        ],
+        "name": "Speed Potion",
+        "short": "Increases your movement speed"
+      },
+      "speed_atack": {
+        "detail": [
+          "{good:amount}s between shots"
+        ],
+        "name": "Attack Speed Potion",
+        "short": "Increases your attack speed"
+      }
+    },
+    "power": {
+      "big_bullets": {
+        "detail": [
+          "Size: x{good:radius_multiplier}"
+        ],
+        "name": "Big Bullets",
+        "short": "Increases projectile size."
+      },
+      "double_shot": {
+        "detail": [
+          "Projectiles: {good:parallel_count}",
+          "Spacing: {good:parallel_spacing}"
+        ],
+        "name": "Double Shot",
+        "short": "Fires two parallel projectiles."
+      },
+      "electric": {
+        "detail": [
+          "{chance_percent} chance to apply electricity"
+        ],
+        "name": "Electric Power",
+        "short": "Your shots can apply electricity"
+      },
+      "fire": {
+        "detail": [
+          "Sets fire as your main element"
+        ],
+        "name": "Fire Power",
+        "short": "Your shots apply fire"
+      },
+      "ice": {
+        "detail": [
+          "{chance_percent} chance to apply ice"
+        ],
+        "name": "Ice Power",
+        "short": "Your shots can apply ice"
+      },
+      "poison": {
+        "detail": [
+          "{chance_percent} chance to apply poison"
+        ],
+        "name": "Poison Power",
+        "short": "Your shots can apply poison"
+      },
+      "rear_shot": {
+        "detail": [
+          "Rear volley: {good:rear_shot}"
+        ],
+        "name": "Rear Shot",
+        "short": "Repeats the full volley behind you."
+      },
+      "triple_shot": {
+        "detail": [
+          "Projectiles: {good:fan_count}",
+          "Angle: {good:fan_angle}°"
+        ],
+        "name": "Triple Shot",
+        "short": "Fires three projectiles in a spread."
+      }
+    }
+  },
+  "ui": {
+    "tooltip": {
+      "hold_shift": "Hold Shift for details",
+      "release_shift": "Release Shift for summary"
+    }
+  }
+}

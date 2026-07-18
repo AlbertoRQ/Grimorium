@@ -7,7 +7,7 @@ class BossScreen(CombatScreen):
     def __init__(self, game):
         super().__init__(game, get_random_boss_room(), "boss")
 
-        self.boss = BasicBoss()
+        self.boss = BasicBoss(self.game.enemy_level)
 
         if self.room.boss_spawn is not None:
             self.boss.x, self.boss.y = self.room.boss_spawn

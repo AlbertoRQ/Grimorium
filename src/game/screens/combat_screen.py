@@ -10,8 +10,10 @@ from game.systems.collisions import (
     resolve_enemies_touch_player,
     circles_collide
 )
-from game.entities.items.pickup_item import PickupItem
-from game.entities.items.item_data import choose_random_item_id
+from game.systems.voltaic_fragmentation import VoltaicFragmentation
+from game.systems.poison_cloud import PoisonCloud
+from game.systems.ice_puddle import IcePuddle
+
 
 from game.entities.triggers.trigger import Trigger
 
@@ -23,12 +25,6 @@ WEAPON_KEYS = {
     pygame.K_3: "spread",
 }
 
-ELEMENTS_KEYS = {
-    pygame.K_4: None,
-    pygame.K_5: "fire",
-    pygame.K_6: "ice",
-    pygame.K_7: "electric",
-}
 
 
 class CombatScreen(BaseScreen):
@@ -38,7 +34,52 @@ class CombatScreen(BaseScreen):
         super().__init__(game)
 
         # Combat background
-        self.background = pygame.image.load(asset_path("images", "combat_screen.png")).convert()
+        self.setup_background()
+
+        self.setup_player_for_combat()
+
+        self.bullets = []
+        self.combat_effects = []
+        self.voltaic_fragmentations = []
+        self.ice_puddles = []
+        self.poison_clouds = []
+
+        self.enemies = []
+        self.enemies_bullets = []
+        self.font = create_font(9)
+
+        self.room = Room(room_layout, room_type, self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT)
+        self.place_player_at_spawn()
+
+        self.complete = False
+
+        self.triggers = []
+        self.triggers_spawned = False
+
+        self.intro_active = True
+        self.intro_speed = 70
+        self.setup_room_intro()
+        
+        self.room_time = 0
+
+        self.stat_positions = {
+            "coins": (58, 97),
+            "health": (0, 0),
+            "damage": (60, 121),
+            "speed": (60, 143),
+            "fire_rate": (60, 163),
+            "shoot_distance": (60, 183),
+            "body_damage": (60, 205),
+            "luck": (0, 0),
+        }
+
+        self.setup_floor_track()
+
+
+    def setup_background(self):
+        self.background = pygame.image.load(
+            asset_path("images", "combat_screen.png")
+        ).convert()
         self.background_original_size = self.background.get_size()
 
         self.base_width, self.base_height = self.background_original_size
@@ -55,46 +96,19 @@ class CombatScreen(BaseScreen):
 
         self.background = pygame.transform.scale(
             self.background,
-            (self.render_width, self.render_height)
+            (self.render_width, self.render_height),
         )
 
-
-
+    def setup_player_for_combat(self):
         self.player = self.game.player
         self.player.visual.set_size(32, 32)
         self.player.visual.clear_fixed_frame()
         self.player.visual.set_locked(False)
         self.player.visual.set_state("idle", reset=True)
         self.player.visual.set_facing("down")
-        self.bullets = []
-        self.enemies = []
-        self.enemies_bullets = []
-        self.font = create_font(9)
 
-        self.room = Room(room_layout, room_type, self.VIRTUAL_WIDTH, self.VIRTUAL_HEIGHT)
-        self.place_player_at_spawn()
-
-        self.complete = False
-        self.items = []
-        self.items_spawned = False
-        self.reward_item_count = 3
-
-        self.triggers = []
-        self.triggers_spawned = False
-
-        self.room_time = 0
-
-        self.stat_positions = {
-            "coins": (58, 97),
-            "health": (0, 0),
-            "damage": (60, 121),
-            "speed": (60, 143),
-            "fire_rate": (60, 163),
-            "shoot_distance": (60, 183),
-            "body_damage": (60, 205),
-            "luck": (0, 0),
-        }
-
+    
+    def setup_floor_track(self):
         self.floor_track_rooms = [
             step for step in config.RUN_PATTERN
             if step != "shop"
@@ -112,7 +126,7 @@ class CombatScreen(BaseScreen):
             ).convert_alpha(),
         }
 
-        self.floor_track_floor_positions  = [
+        self.floor_track_floor_positions = [
             (595, 240),
             (595, 217),
             (595, 194),
@@ -130,8 +144,65 @@ class CombatScreen(BaseScreen):
         ]
 
         self.floor_track_shop_indices = self.build_floor_track_shops()
+    
+        
     def get_blockers(self, include_walls=True, include_objects=True, include_voids=False):
         return self.room.get_blocking_rects(include_walls, include_objects, include_voids)
+    
+
+    def setup_room_intro(self):
+        if self.room.player_spawn is None:
+            self.intro_active = False
+            return
+
+        entrance_door = self.room.get_entrance_door()
+
+        if entrance_door is None:
+            self.intro_active = False
+            return
+
+        self.intro_target_x, self.intro_target_y = self.get_intro_target_from_door(entrance_door)
+
+        self.player.x = entrance_door["full_rect"].centerx
+        self.player.y = entrance_door["full_rect"].centery
+
+        self.player.visual.set_facing("up")
+        self.player.visual.set_state("walk", reset=True)
+
+    
+    def get_intro_target_from_door(self, door):
+        x = door["full_rect"].centerx
+        y = door["full_rect"].centery
+        distance = config.ROOM_CELL_SIZE
+
+        if door["side"] == "bottom":
+            y -= distance
+        elif door["side"] == "top":
+            y += distance
+        elif door["side"] == "left":
+            x += distance
+        elif door["side"] == "right":
+            x -= distance
+
+        return x, y
+
+    def update_room_intro(self, dt):
+        dx = self.intro_target_x - self.player.x
+        dy = self.intro_target_y - self.player.y
+
+        distance = (dx * dx + dy * dy) ** 0.5
+
+        if distance <= 2:
+            self.player.x = self.intro_target_x
+            self.player.y = self.intro_target_y
+            self.player.visual.set_state("idle", reset=True)
+            self.room.close_entrance_doors()
+            self.intro_active = False
+            return
+
+        self.player.x += dx / distance * self.intro_speed * dt
+        self.player.y += dy / distance * self.intro_speed * dt
+        self.player.visual.update(dt)
 
     def place_player_at_spawn(self):
         if self.room.player_spawn is not None:
@@ -157,8 +228,6 @@ class CombatScreen(BaseScreen):
     def handle_weapon_key(self, key):
         if key in WEAPON_KEYS:
             self.player.bullet_type = WEAPON_KEYS[key]
-        if key in ELEMENTS_KEYS:
-            self.player.bullet_element = ELEMENTS_KEYS[key]
 
     def kill_all_enemies(self):
         self.enemies = []
@@ -173,8 +242,11 @@ class CombatScreen(BaseScreen):
         self.bullets.extend(self.player.shoot(keys))
 
     def update_enemies(self, dt, blockers):
+        wall_blockers = self.get_blockers(True, False, False)
+
         for enemy in self.enemies:
-            new_bullets = enemy.update(self.player, dt, blockers, self.enemies)
+            enemy_blockers = wall_blockers if getattr(enemy, "is_flying", False) else blockers
+            new_bullets = enemy.update(self.player, dt, enemy_blockers, self.enemies, self.room)
 
             if new_bullets:
                 self.enemies_bullets.extend(new_bullets)
@@ -184,6 +256,16 @@ class CombatScreen(BaseScreen):
 
         for bullet in self.bullets:
             bullet.update(dt, blockers)
+
+            if bullet.hit_wall and self.has_voltaic_fragmentation(bullet):
+                original_damage = bullet.damage * self.player.damage
+
+                effect = VoltaicFragmentation(
+                    bullet,
+                    original_damage,
+                )
+
+                self.voltaic_fragmentations.append(effect)
 
         for enemy_bullet in self.enemies_bullets:
             enemy_bullet.update(dt, blockers)
@@ -200,13 +282,21 @@ class CombatScreen(BaseScreen):
 
 
     def resolve_collisions(self, blockers):
-        self.bullets, self.enemies, coins_gained = resolve_player_bullets_vs_enemies(
+        self.bullets, self.enemies, coins_gained, created_effects = resolve_player_bullets_vs_enemies(
             self.bullets,
             self.enemies,
             blockers,
             self.player.damage,
         )
         self.player.coins += coins_gained
+
+        for effect in created_effects:
+            if isinstance(effect, IcePuddle):
+                self.ice_puddles.append(effect)
+            elif isinstance(effect, PoisonCloud):
+                self.poison_clouds.append(effect)
+            else:
+                self.combat_effects.append(effect)
 
         self.enemies_bullets = resolve_enemy_bullets_vs_player(
             self.enemies_bullets,
@@ -226,26 +316,50 @@ class CombatScreen(BaseScreen):
     def draw(self, surface):
         surface.blit(self.background, (self.offset_x, self.offset_y))
 
+        self.draw_world(surface)
+        self.draw_entities(surface)
+        self.draw_projectiles(surface)
+        self.draw_effects(surface)
+        self.draw_room_info(surface)
+        self.draw_floor_track(surface)
+
+        self.draw_extra(surface)
+        self.draw_hud(surface)
+
+    def draw_world(self, surface):
         self.room.draw(surface)
 
-        for item in self.items:
-            item.draw(surface)
+        for puddle in self.ice_puddles:
+            puddle.draw(surface)
 
-        for trigger in self.triggers:
-            trigger.draw(surface)
+        # for trigger in self.triggers:
+        #     trigger.draw(surface)
 
+    def draw_entities(self, surface):
         self.player.draw(surface)
-
-        for bullet in self.bullets:
-            bullet.draw(surface)
 
         for enemy in self.enemies:
             enemy.draw(surface)
 
+    def draw_projectiles(self, surface):
+        for bullet in self.bullets:
+            bullet.draw(surface)
+
         for enemy_bullet in self.enemies_bullets:
             enemy_bullet.draw(surface)
 
-        max_floors = sum(1 for step in config.RUN_PATTERN if step == "normal" or step == "boss")
+    def draw_effects(self, surface):
+        for cloud in self.poison_clouds:
+            cloud.draw(surface)
+
+        for effect in self.voltaic_fragmentations:
+            effect.draw(surface)
+
+        for effect in self.combat_effects:
+            effect.draw(surface)
+
+    def draw_room_info(self, surface):
+        max_floors = sum(1 for step in config.RUN_PATTERN if step in ("normal", "boss"))
         current_floor = self.game.room_level
 
         current_loop = self.game.run_cycles + 1
@@ -255,8 +369,7 @@ class CombatScreen(BaseScreen):
         time_rect = time_text.get_rect(center=(53, 55))
         surface.blit(time_text, time_rect)
 
-
-        floor_text = self.font.render(f"FLOOR", True, config.HUD_COLOR)
+        floor_text = self.font.render("FLOOR", True, config.HUD_COLOR)
         floor_rect = floor_text.get_rect(center=(595, 271))
         surface.blit(floor_text, floor_rect)
 
@@ -264,16 +377,16 @@ class CombatScreen(BaseScreen):
         floor_num_rect = floor_num.get_rect(center=(595, 285))
         surface.blit(floor_num, floor_num_rect)
 
-
-        loop_text = self.font.render(f"LOOP", True, config.HUD_COLOR)
-        loop_rect = loop_text.get_rect(center=(595, 307))        
+        loop_text = self.font.render("LOOP", True, config.HUD_COLOR)
+        loop_rect = loop_text.get_rect(center=(595, 307))
         surface.blit(loop_text, loop_rect)
 
         loop_num = self.font.render(f"{current_loop}/{max_loops}", True, config.HUD_COLOR)
-        loop_num_rect = loop_num.get_rect(center=(595, 321))        
+        loop_num_rect = loop_num.get_rect(center=(595, 321))
         surface.blit(loop_num, loop_num_rect)
 
 
+    def draw_floor_track(self, surface):
         for index, room_type in enumerate(self.floor_track_rooms):
             image = self.floor_track_images[room_type]
             rect = image.get_rect(center=self.floor_track_floor_positions[index])
@@ -292,10 +405,6 @@ class CombatScreen(BaseScreen):
         pygame.draw.circle(surface, (0, 0, 0), marker_pos, 6)
         pygame.draw.circle(surface, (255, 255, 255), marker_pos, 4)
 
-        
-
-        self.draw_extra(surface)
-        self.draw_hud(surface)
 
     def draw_extra(self, surface):
         pass
@@ -304,7 +413,6 @@ class CombatScreen(BaseScreen):
 
         self.player.draw_player_stats(surface, self.font, self.stat_positions)
         self.player.draw_player_health(surface, self.font)
-        self.player.draw_player_items(surface, self.font)
 
     def get_current_floor_track_index(self):
         combat_index = 0
@@ -348,41 +456,12 @@ class CombatScreen(BaseScreen):
 
             self.game.screen_manager.set_screen(GameOverScreen(self.game))
     
-    def is_complete(self):
+    def update_completion_state(self):
         if self.complete:
             return
 
         if len(self.enemies) == 0:
             self.complete = True
-
-
-    def spawn_reward_items(self):
-        for item_pos in self.room.item_spawns:
-            x, y = item_pos
-            item_id = choose_random_item_id(self.player)
-            self.items.append(PickupItem(x, y, item_id))
-        
-    def update_items(self):
-        if not self.complete:
-            return
-
-        if not self.items_spawned:
-            self.spawn_reward_items()
-            self.items_spawned = True
-
-        self.collect_items()
-
-
-    def collect_items(self):
-        items_left = []
-
-        for item in self.items:
-            if circles_collide(self.player, item):
-                self.player.apply_item(item)
-            else:
-                items_left.append(item)
-
-        self.items = items_left
 
 
     def spawn_triggers(self):
@@ -394,6 +473,7 @@ class CombatScreen(BaseScreen):
             return
 
         if not self.triggers_spawned:
+            self.room.open_doors()
             self.spawn_triggers()
             self.triggers_spawned = True
 
@@ -417,23 +497,111 @@ class CombatScreen(BaseScreen):
         time_coins = 5
         time_coins -= int(self.room_time / time_coins)
         if time_coins > 0:
-            self.player.coins += time_coins       
+            self.player.coins += time_coins     
+
+    def update_combat_effects(self, dt):
+        for effect in self.combat_effects:
+            effect.update(dt, self.enemies)
+
+        self.combat_effects = [
+            effect for effect in self.combat_effects
+            if not effect.finished
+        ]
+
+
+    def has_voltaic_fragmentation(self, bullet):
+        required_elements = {"fire", "electric"}
+
+        return (
+            required_elements.issubset(set(bullet.elements))
+            and bullet.can_fragment
+        )
+    
+
+    def update_voltaic_fragmentations(self, dt):
+        new_fragments = []
+
+        for effect in self.voltaic_fragmentations:
+            fragments = effect.update(dt)
+            new_fragments.extend(fragments)
+
+        self.voltaic_fragmentations = [
+            effect
+            for effect in self.voltaic_fragmentations
+            if not effect.finished
+        ]
+
+        self.bullets.extend(new_fragments)
+
+    def update_ice_puddles(self, dt):
+        for puddle in self.ice_puddles:
+            puddle.update(dt, self.enemies)
+
+        self.ice_puddles = [
+            puddle for puddle in self.ice_puddles
+            if not puddle.finished
+        ]
+
+    def update_poison_clouds(self, dt):
+        for cloud in self.poison_clouds:
+            cloud.update(dt, self.enemies)
+
+        self.poison_clouds = [
+            cloud for cloud in self.poison_clouds
+            if not cloud.expired
+        ]
+
+    def electrify_ice_puddles(self):
+        for bullet in self.bullets:
+            if "electric" not in bullet.elements:
+                continue
+
+            for puddle in self.ice_puddles:
+                if puddle.contains_entity(bullet):
+                    puddle.electrify()
+
+    def update_player_phase(self, dt, blockers):
+        self.update_player(dt, blockers)
+        self.update_player_shooting()
+        
+    def update_projectile_phase(self, dt, blockers):
+        self.update_projectiles(dt, blockers)
+        self.electrify_ice_puddles()
+        self.update_voltaic_fragmentations(dt)
+
+    def update_enemy_phase(self, dt, blockers):
+        self.update_enemies(dt, blockers)
+        self.remove_dead_enemies()
+        self.resolve_collisions(blockers)
+
+    def update_effect_phase(self, dt):
+        self.update_ice_puddles(dt)
+        self.update_poison_clouds(dt)
+        self.update_combat_effects(dt)
+
+    def update_room_state_phase(self):
+        self.check_game_over()
+        self.update_completion_state()
+        self.update_triggers()
+        self.check_next_trigger()
+
+    def update_room_timer(self, dt):
+        if not self.complete:
+            self.room_time += dt
 
     def update(self, dt):
+
+        if self.intro_active:
+            self.update_room_intro(dt)
+            return
+        
         blockers_full = self.get_blockers(True, True, True)
         blockers_projectiles = self.get_blockers(True, True, False)
 
-        self.update_player(dt, blockers_full)
-        self.update_player_shooting()
-        self.update_projectiles(dt, blockers_projectiles)
-        self.update_enemies(dt, blockers_full)
-        self.remove_dead_enemies()
-        self.resolve_collisions(blockers_full)
-        self.check_game_over()
-        self.is_complete()
-        self.update_items()
-        self.update_triggers()
-        self.check_next_trigger()
-        if not self.complete:
-            self.room_time += dt
+        self.update_player_phase(dt, blockers_full)
+        self.update_projectile_phase(dt, blockers_projectiles)
+        self.update_enemy_phase(dt, blockers_full)
+        self.update_effect_phase(dt)
+        self.update_room_state_phase()
+        self.update_room_timer(dt)
         

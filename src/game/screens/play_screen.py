@@ -2,11 +2,14 @@ from game.rooms.room_data import get_random_normal_room
 from game.screens.combat_screen import CombatScreen
 
 from random import choice
-from game.entities.enemies.shooter_enemy import ShooterEnemy
-from game.entities.enemies.chaser_enemy import ChaserEnemy
+from game.entities.enemies.rat_enemy import RatEnemy
+from game.entities.enemies.goblin_enemy import GoblinEnemy
+from game.entities.enemies.golem_enemy import GolemEnemy
+from game.entities.enemies.dragon_enemy import DragonEnemy
 
 
-ENEMY_TYPES = [ShooterEnemy, ChaserEnemy]
+ENEMY_TYPES = [GoblinEnemy, GolemEnemy, DragonEnemy, RatEnemy]
+# ENEMY_TYPES = [GolemEnemy, RatEnemy, GoblinEnemy]
 
 
 class PlayScreen(CombatScreen):
@@ -17,4 +20,4 @@ class PlayScreen(CombatScreen):
     def spawn_room_enemies(self):
         for enemy_pos in self.room.enemy_spawns:
             enemy_class = choice(ENEMY_TYPES)
-            self.enemies.append(enemy_class(enemy_pos, self.game.room_level))
+            self.enemies.append(enemy_class(enemy_pos, self.game.enemy_level))

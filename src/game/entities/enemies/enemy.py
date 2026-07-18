@@ -1,6 +1,5 @@
-"""Enemigo base."""
-
 import math
+import pygame
 
 from game import config
 from game.entities.entity import LivingEntity
@@ -53,14 +52,20 @@ class Enemy(LivingEntity):
                 "cooldown_value": 0,
 
             },
-            "shock": {
+            "poison": {
+                "stacks": 0,
+                "timer": 0,
+                "max_stacks": 5,
+                "damage_taken_per_stack": 0.05,
+            },
+            "fragile": {
                 "timer": 0,
             },
         }
 
         self.visual = None
 
-    def move(self, player, dt, blockers, entities):
+    def move(self, player, dt, blockers, entities, room=None):
         diff_x = player.x - self.x
         diff_y = player.y - self.y
         distance = math.hypot(diff_x, diff_y)
@@ -76,8 +81,8 @@ class Enemy(LivingEntity):
     def update_status_effects(self, dt):
         self.update_burn(dt)
         self.update_ice(dt)
-        #self.update_shock(dt)
-        #self.update_visual_effects(dt)
+        self.update_poison(dt)
+        self.update_fragile(dt)
 
     def update_visual_effects(self):
         ice = self.status_effects["ice"]
@@ -181,9 +186,27 @@ class Enemy(LivingEntity):
             ice["stacks"] = 0
             self.speed = self.base_speed
 
-    def update(self, player, dt, blockers, entities):
+    def update_poison(self, dt):
+        poison = self.status_effects["poison"]
+
+        if poison["timer"] > 0:
+            poison["timer"] -= dt
+            if poison["timer"] <= 0:
+                poison["timer"] = 0
+                poison["stacks"] = 0
+
+    def update_fragile(self, dt):
+        fragile = self.status_effects["fragile"]
+
+        if fragile["timer"] > 0:
+            fragile["timer"] -= dt
+
+            if fragile["timer"] < 0:
+                fragile["timer"] = 0
+
+    def update(self, player, dt, blockers, entities, room=None):
         self.update_status_effects(dt)
-        self.move(player, dt, blockers, entities)
+        self.move(player, dt, blockers, entities, room)
 
         if self.visual is not None:
             self.visual.update(dt)
@@ -193,6 +216,13 @@ class Enemy(LivingEntity):
         return []
     
     def take_damage(self, damage):
+
+        poison = self.status_effects.get("poison")
+
+        if poison is not None and poison["stacks"] > 0:
+            bonus = poison["stacks"] * poison["damage_taken_per_stack"]
+            damage *= 1 + bonus
+
         if damage > 0:
             self.health = max(0, self.health - damage)
             self.damage_flash_timer = 0.15
@@ -236,6 +266,7 @@ class Enemy(LivingEntity):
 
 
     def draw(self, surface):
+
         sprite = self.visual.get_surface()
 
         if sprite is None:
@@ -243,3 +274,51 @@ class Enemy(LivingEntity):
 
         rect = sprite.get_rect(center=(int(self.x), int(self.y)))
         surface.blit(sprite, rect)
+
+        self.draw_status_marks(surface)
+
+
+
+    def draw_status_marks(self, surface):
+        marks = []
+        
+        poison = self.status_effects["poison"]
+
+        poison_stacks = poison["stacks"]
+        for _ in range(poison_stacks):
+            marks.append(("poison", (180, 80, 220)))
+        
+        fragile = self.status_effects["fragile"]
+
+        if fragile["timer"] > 0:
+            marks.append(("fragile", (220, 240, 255)))
+
+        if not marks:
+            return
+
+        mark_radius = 3
+        spacing = 8
+        total_width = (len(marks) - 1) * spacing
+
+        start_x = self.x - total_width / 2
+        y = self.y - self.radius - 12
+
+        for index, (_name, color) in enumerate(marks):
+            x = start_x + index * spacing
+
+            pygame.draw.circle(
+                surface,
+                (20, 20, 25),
+                (int(x), int(y)),
+                mark_radius + 1,
+            )
+
+            pygame.draw.circle(
+                surface,
+                color,
+                (int(x), int(y)),
+                mark_radius,
+            )
+
+
+    

@@ -17,9 +17,8 @@ class GameOverScreen(BaseScreen):
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                from game.screens.play_screen import PlayScreen
                 self.game.start_new_run()
-                self.game.screen_manager.set_screen(PlayScreen(self.game))
+
             elif event.key == pygame.K_ESCAPE:
                 from game.screens.menu_screen import MenuScreen
 

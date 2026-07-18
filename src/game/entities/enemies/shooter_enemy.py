@@ -57,7 +57,7 @@ class ShooterEnemy(Enemy):
         )
 
 
-    def move(self, player, dt, blockers, entities):
+    def move(self, player, dt, blockers, entities, room=None):
         diff_x = player.x - self.x
         diff_y = player.y - self.y
         distance = math.hypot(diff_x, diff_y)
@@ -115,7 +115,7 @@ class ShooterEnemy(Enemy):
 
         return shot
 
-    def update(self, player, dt, blockers, entities):
+    def update(self, player, dt, blockers, entities,  room=None):
         super().update(player, dt, blockers, entities)
         self.shoot_timer = max(0, self.shoot_timer - dt)
         return self.shoot(player)
