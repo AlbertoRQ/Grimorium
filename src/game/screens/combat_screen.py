@@ -13,7 +13,7 @@ from game.systems.collisions import (
 from game.systems.voltaic_fragmentation import VoltaicFragmentation
 from game.systems.poison_cloud import PoisonCloud
 from game.systems.ice_puddle import IcePuddle
-
+from game.systems.toxic_overload import ToxicOverload
 
 from game.entities.triggers.trigger import Trigger
 
@@ -43,6 +43,7 @@ class CombatScreen(BaseScreen):
         self.voltaic_fragmentations = []
         self.ice_puddles = []
         self.poison_clouds = []
+        self.toxic_overload = None
 
         self.enemies = []
         self.enemies_bullets = []
@@ -239,7 +240,37 @@ class CombatScreen(BaseScreen):
 
     def update_player_shooting(self):
         keys = pygame.key.get_pressed()
-        self.bullets.extend(self.player.shoot(keys))
+        new_bullets = self.player.shoot(keys)
+
+        bullets_to_fire = []
+
+        for bullet in new_bullets:
+            elements = set(bullet.elements)
+            is_toxic_overload_bullet = (
+                "electric" in elements
+                and "poison" in elements
+            )
+
+            if is_toxic_overload_bullet:
+                if self.toxic_overload is None:
+                    combo_data = bullet.effect_data["combos"]["electric_poison"]
+
+                    self.toxic_overload = ToxicOverload(
+                        self.player,
+                        combo_data,
+                    )
+
+                    self.player.toxic_overload_active = True
+                    self.player.toxic_overload_speed_multiplier = (
+                        self.toxic_overload.speed_multiplier
+                    )
+
+                # Esta bala se consume y no se añade a bullets_to_fire.
+                continue
+
+            bullets_to_fire.append(bullet)
+
+        self.bullets.extend(bullets_to_fire)
 
     def update_enemies(self, dt, blockers):
         wall_blockers = self.get_blockers(True, False, False)
@@ -328,6 +359,9 @@ class CombatScreen(BaseScreen):
 
     def draw_world(self, surface):
         self.room.draw(surface)
+
+        if self.toxic_overload is not None:
+            self.toxic_overload.draw(surface)
 
         for puddle in self.ice_puddles:
             puddle.draw(surface)
@@ -560,6 +594,16 @@ class CombatScreen(BaseScreen):
                 if puddle.contains_entity(bullet):
                     puddle.electrify()
 
+    def update_toxic_overload(self, dt):
+        if self.toxic_overload is not None:
+            self.toxic_overload.update(dt, self.enemies)
+
+            if self.toxic_overload.finished:
+                self.toxic_overload = None
+                self.player.toxic_overload_active = False
+                self.player.toxic_overload_speed_multiplier = 1.0
+    
+
     def update_player_phase(self, dt, blockers):
         self.update_player(dt, blockers)
         self.update_player_shooting()
@@ -575,6 +619,7 @@ class CombatScreen(BaseScreen):
         self.resolve_collisions(blockers)
 
     def update_effect_phase(self, dt):
+        self.update_toxic_overload(dt)
         self.update_ice_puddles(dt)
         self.update_poison_clouds(dt)
         self.update_combat_effects(dt)

@@ -67,7 +67,7 @@
  [],
  False,
  False,
- 1781937976,
+ 1784461186,
  [('runw.exe',
    'C:\\Users\\alber\\OneDrive\\Desktop\\Proyectos\\Grimorium\\.gitignore\\.venv\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
    'EXECUTABLE')],

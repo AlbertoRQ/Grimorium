@@ -1,0 +1,423 @@
+[
+  {
+    "owner_type": "potion",
+    "owner_id": "health",
+    "target_scope": "player_stat",
+    "target": "health",
+    "operation": "add",
+    "value": 1000,
+    "value_type": "int",
+    "unit": "HP",
+    "notes": "La aplicacion limita al max_health"
+  },
+  {
+    "owner_type": "potion",
+    "owner_id": "speed",
+    "target_scope": "player_stat",
+    "target": "speed",
+    "operation": "add",
+    "value": 25,
+    "value_type": "int",
+    "unit": "px/s"
+  },
+  {
+    "owner_type": "potion",
+    "owner_id": "damage",
+    "target_scope": "player_stat",
+    "target": "damage",
+    "operation": "add",
+    "value": 0.5,
+    "value_type": "number",
+    "unit": "damage"
+  },
+  {
+    "owner_type": "potion",
+    "owner_id": "body_damage",
+    "target_scope": "player_stat",
+    "target": "body_damage",
+    "operation": "add",
+    "value": 0.5,
+    "value_type": "number",
+    "unit": "damage"
+  },
+  {
+    "owner_type": "potion",
+    "owner_id": "speed_atack",
+    "target_scope": "player_stat",
+    "target": "fire_rate",
+    "operation": "add",
+    "value": -0.025,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "potion",
+    "owner_id": "luck",
+    "target_scope": "player_stat",
+    "target": "luck",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "point"
+  },
+  {
+    "owner_type": "potion",
+    "owner_id": "shoot_distance",
+    "target_scope": "player_stat",
+    "target": "shoot_distance",
+    "operation": "add",
+    "value": 5,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "power",
+    "owner_id": "triple_shot",
+    "target_scope": "shot_context",
+    "target": "fan_count",
+    "operation": "set",
+    "value": 3,
+    "value_type": "int",
+    "unit": "projectiles"
+  },
+  {
+    "owner_type": "power",
+    "owner_id": "triple_shot",
+    "target_scope": "shot_context",
+    "target": "fan_angle",
+    "operation": "set",
+    "value": 20,
+    "value_type": "number",
+    "unit": "deg"
+  },
+  {
+    "owner_type": "power",
+    "owner_id": "double_shot",
+    "target_scope": "shot_context",
+    "target": "parallel_count",
+    "operation": "set",
+    "value": 2,
+    "value_type": "int",
+    "unit": "projectiles"
+  },
+  {
+    "owner_type": "power",
+    "owner_id": "double_shot",
+    "target_scope": "shot_context",
+    "target": "parallel_spacing",
+    "operation": "set",
+    "value": 8,
+    "value_type": "number",
+    "unit": "px"
+  },
+  {
+    "owner_type": "power",
+    "owner_id": "big_bullets",
+    "target_scope": "shot_context",
+    "target": "radius_multiplier",
+    "operation": "multiply",
+    "value": 1.5,
+    "value_type": "number",
+    "unit": "x"
+  },
+  {
+    "owner_type": "power",
+    "owner_id": "rear_shot",
+    "target_scope": "shot_context",
+    "target": "rear_shot",
+    "operation": "set",
+    "value": true,
+    "value_type": "bool",
+    "unit": "bool"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire",
+    "target_scope": "element",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire",
+    "target_scope": "element",
+    "target": "burn_damage",
+    "operation": "add",
+    "value": 0.2,
+    "value_type": "number",
+    "unit": "damage"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire",
+    "target_scope": "element",
+    "target": "burn_duration",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice",
+    "target_scope": "element",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice",
+    "target_scope": "element",
+    "target": "slow_duration",
+    "operation": "add",
+    "value": 0.2,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice",
+    "target_scope": "element",
+    "target": "slow_multiplier",
+    "operation": "add",
+    "value": -0.1,
+    "value_type": "number",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice",
+    "target_scope": "element",
+    "target": "ice_duration",
+    "operation": "add",
+    "value": 0.2,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric",
+    "target_scope": "element",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric",
+    "target_scope": "element",
+    "target": "damage_percentage",
+    "operation": "add",
+    "value": 0.05,
+    "value_type": "number",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric",
+    "target_scope": "element",
+    "target": "max_jump_distance",
+    "operation": "add",
+    "value": 10,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "poison",
+    "target_scope": "element",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "poison",
+    "target_scope": "element",
+    "target": "damage_taken_per_stack",
+    "operation": "add",
+    "value": 0.01,
+    "value_type": "number",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "poison",
+    "target_scope": "element",
+    "target": "boss_duration",
+    "operation": "add",
+    "value": 0.5,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_ice",
+    "target_scope": "combo",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_ice",
+    "target_scope": "combo",
+    "target": "damage_multiplier",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_electric",
+    "target_scope": "combo",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_electric",
+    "target_scope": "combo",
+    "target": "damage_multiplier",
+    "operation": "add",
+    "value": 0.05,
+    "value_type": "number",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_electric",
+    "target_scope": "combo",
+    "target": "fragment_range",
+    "operation": "add",
+    "value": 10,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "target_scope": "combo",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "target_scope": "combo",
+    "target": "puddle_size_multiplier",
+    "operation": "add",
+    "value": 0.15,
+    "value_type": "number",
+    "unit": "x"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "target_scope": "combo",
+    "target": "puddle_duration_bonus",
+    "operation": "add",
+    "value": 0.5,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "target_scope": "combo",
+    "target": "electric_duration",
+    "operation": "add",
+    "value": 0.4,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric",
+    "target_scope": "combo",
+    "target": "tick_damage",
+    "operation": "add",
+    "value": 0.25,
+    "value_type": "number",
+    "unit": "damage"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison",
+    "target_scope": "combo",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison",
+    "target_scope": "combo",
+    "target": "cloud_radius",
+    "operation": "add",
+    "value": 5,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison",
+    "target_scope": "combo",
+    "target": "cloud_duration",
+    "operation": "add",
+    "value": 0.5,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_poison",
+    "target_scope": "combo",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_poison",
+    "target_scope": "combo",
+    "target": "execute_threshold_per_stack",
+    "operation": "add",
+    "value": 0.02,
+    "value_type": "number",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_poison",
+    "target_scope": "combo",
+    "target": "fragile_duration",
+    "operation": "add",
+    "value": 0.5,
+    "value_type": "number",
+    "unit": "s"
+  }
+]

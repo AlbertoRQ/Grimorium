@@ -1,0 +1,273 @@
+[
+  {
+    "type": "potion",
+    "id": "health",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/potion_health.bmp",
+    "text_key": "item.potion.health",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "potion",
+    "id": "speed",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/potion_speed.bmp",
+    "text_key": "item.potion.speed",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "potion",
+    "id": "damage",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/potion_damage.bmp",
+    "text_key": "item.potion.damage",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "potion",
+    "id": "body_damage",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/potion_body_damage.bmp",
+    "text_key": "item.potion.body_damage",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "potion",
+    "id": "speed_atack",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/potion_speed_atack.bmp",
+    "text_key": "item.potion.speed_atack",
+    "tooltip_style": "default",
+    "enabled": true,
+    "notes": "ID historico conservado tal cual"
+  },
+  {
+    "type": "potion",
+    "id": "luck",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/_potion_luck.bmp",
+    "text_key": "item.potion.luck",
+    "tooltip_style": "default",
+    "enabled": false,
+    "notes": "Borrador: asset prefijado con _; no aparecia en la tienda"
+  },
+  {
+    "type": "potion",
+    "id": "shoot_distance",
+    "category": "consumable",
+    "price": 5,
+    "asset": "images/potions/potion_shoot_distance.bmp",
+    "text_key": "item.potion.shoot_distance",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "fire",
+    "category": "element",
+    "target_id": "fire",
+    "mode": "base",
+    "chance": 1,
+    "price": 10,
+    "asset": "images/powers/power_fire.bmp",
+    "text_key": "item.power.fire",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "ice",
+    "category": "element",
+    "target_id": "ice",
+    "mode": "extra",
+    "chance": 0.5,
+    "price": 10,
+    "asset": "images/powers/power_ice.bmp",
+    "text_key": "item.power.ice",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "electric",
+    "category": "element",
+    "target_id": "electric",
+    "mode": "extra",
+    "chance": 0.5,
+    "price": 10,
+    "asset": "images/powers/power_electric.bmp",
+    "text_key": "item.power.electric",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "poison",
+    "category": "element",
+    "target_id": "poison",
+    "mode": "extra",
+    "chance": 0.25,
+    "price": 10,
+    "asset": "images/powers/power_poison.bmp",
+    "text_key": "item.power.poison",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "triple_shot",
+    "category": "shot_modifier",
+    "price": 10,
+    "asset": "images/powers/power_triple_shot.bmp",
+    "text_key": "item.power.triple_shot",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "double_shot",
+    "category": "shot_modifier",
+    "price": 10,
+    "asset": "images/powers/power_double_shot.bmp",
+    "text_key": "item.power.double_shot",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "big_bullets",
+    "category": "shot_modifier",
+    "price": 10,
+    "asset": "images/powers/power_big_bullets.bmp",
+    "text_key": "item.power.big_bullets",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "power",
+    "id": "rear_shot",
+    "category": "shot_modifier",
+    "price": 10,
+    "asset": "images/powers/power_rear_shot.bmp",
+    "text_key": "item.power.rear_shot",
+    "tooltip_style": "default",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire",
+    "category": "element",
+    "target_id": "fire",
+    "price": 5,
+    "asset": "images/books/book_fire.bmp",
+    "text_key": "item.book.fire",
+    "tooltip_style": "fire",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "ice",
+    "category": "element",
+    "target_id": "ice",
+    "price": 5,
+    "asset": "images/books/book_ice.bmp",
+    "text_key": "item.book.ice",
+    "tooltip_style": "ice",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "electric",
+    "category": "element",
+    "target_id": "electric",
+    "price": 5,
+    "asset": "images/books/book_electric.bmp",
+    "text_key": "item.book.electric",
+    "tooltip_style": "electric",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "poison",
+    "category": "element",
+    "target_id": "poison",
+    "price": 5,
+    "asset": "images/books/book_poison.bmp",
+    "text_key": "item.book.poison",
+    "tooltip_style": "poison",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_ice",
+    "category": "combo",
+    "target_id": "fire_ice",
+    "price": 5,
+    "asset": "images/books/book_fire_ice.bmp",
+    "text_key": "item.book.fire_ice",
+    "tooltip_style": "fire_ice",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_electric",
+    "category": "combo",
+    "target_id": "fire_electric",
+    "price": 5,
+    "asset": "images/books/book_fire_electric.bmp",
+    "text_key": "item.book.fire_electric",
+    "tooltip_style": "fire_electric",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "ice_electric",
+    "category": "combo",
+    "target_id": "ice_electric",
+    "price": 5,
+    "asset": "images/books/book_ice_electric.bmp",
+    "text_key": "item.book.ice_electric",
+    "tooltip_style": "ice_electric",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_poison",
+    "category": "combo",
+    "target_id": "fire_poison",
+    "price": 5,
+    "asset": "images/books/book_fire_poison.bmp",
+    "text_key": "item.book.fire_poison",
+    "tooltip_style": "fire_poison",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "ice_poison",
+    "category": "combo",
+    "target_id": "ice_poison",
+    "price": 5,
+    "asset": "images/books/book_ice_poison.bmp",
+    "text_key": "item.book.ice_poison",
+    "tooltip_style": "ice_poison",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "electric_poison",
+    "category": "combo",
+    "target_id": "electric_poison",
+    "price": 5,
+    "asset": "images/books/_book_poison_electric.bmp",
+    "text_key": "item.book.electric_poison",
+    "tooltip_style": "electric_poison",
+    "enabled": false,
+    "notes": "Borrador encontrado: traducciones y asset, pero sin efecto configurado"
+  }
+]

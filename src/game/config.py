@@ -25,7 +25,8 @@ PLAYER_BODY_DAMAGE = 0
 PLAYER_LUCK = 0
 PLAYER_SHOOT_DISTANCE = 120
 PLAYER_INVULNERABILITY_TIME = 1
-PLAYER_COINS = 1000
+PLAYER_COINS = 0
+
 
 
 FORWARD_BONUS = 40
@@ -48,7 +49,7 @@ SHOOTER_ENEMY_SHOOT_DISTANCE = 120
 
 BOSS_MAX_HEALTH = 100
 BOSS_RADIUS = 24
-BOSS_REGEN = 0 #0.5
+BOSS_REGEN = 0.5
 BOSS_DAMAGE = 1
 BOSS_BODY_DAMAGE = 2
 
@@ -62,11 +63,11 @@ RUN_PATTERN = [
     "normal",
     "shop",
     "normal",
-        "shop",
+    "shop",
     "normal",
     "shop",
     "normal",
-        "shop",
+    "shop",
     "normal",
     "shop",
     "boss",

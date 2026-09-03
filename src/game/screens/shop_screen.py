@@ -436,18 +436,29 @@ class ShopScreen(BaseScreen):
             "ice_electric": f"lv:{self.player.combo_stats['ice_electric']['level']}",
             "fire_poison": f"lv:{self.player.combo_stats['fire_poison']['level']}",
             "ice_poison": f"lv:{self.player.combo_stats['ice_poison']['level']}",
+            "electric_poison": f"lv:{self.player.combo_stats['electric_poison']['level']}",
         }
     
 
     def get_visible_power_level_ids(self):
         visible_levels = []
+
+        ordered_elements = self.player.power_element_order.copy()
+
+        configured_elements = (
+            self.player.base_bullet_elements
+            + list(self.player.extra_bullet_element.keys())
+        )
+
+        for element in configured_elements:
+            if element not in ordered_elements:
+                ordered_elements.append(element)
+
         previous_elements = []
 
-        for element in self.player.power_element_order:
-            # Primero aparece el poder recién comprado.
+        for element in ordered_elements:
             visible_levels.append(element)
 
-            # Después aparecen sus combinaciones con poderes anteriores.
             for previous_element in previous_elements:
                 combo_forward = f"{previous_element}_{element}"
                 combo_reverse = f"{element}_{previous_element}"
@@ -617,6 +628,20 @@ class ShopScreen(BaseScreen):
                 stats["execute_threshold_per_stack"] * 100
             )
 
+        elif level_id == "electric_poison":
+            data["drain_per_second"] = round(
+                stats["drain_per_second"],
+                2,
+            )
+            data["tick_damage"] = round(
+                stats["tick_damage"],
+                2,
+            )
+            data["speed_multiplier"] = round(
+                stats["speed_multiplier"],
+                2,
+            )
+
         return data
 
 
@@ -718,6 +743,16 @@ class ShopScreen(BaseScreen):
             elif item_id == "ice_poison":
                 format_data["execute_stack_percent"] = round(
                     format_data["execute_threshold_per_stack"] * 100
+                )
+
+            elif item_id == "electric_poison":
+                format_data["drain_per_second_abs"] = round(
+                    abs(format_data["drain_per_second"]),
+                    2,
+                )
+                format_data["tick_damage"] = round(
+                    format_data["tick_damage"],
+                    2,
                 )
 
         if "chance" in format_data:

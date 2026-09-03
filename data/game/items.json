@@ -267,7 +267,6 @@
     "asset": "images/books/_book_poison_electric.bmp",
     "text_key": "item.book.electric_poison",
     "tooltip_style": "electric_poison",
-    "enabled": false,
-    "notes": "Borrador encontrado: traducciones y asset, pero sin efecto configurado"
+    "enabled": true
   }
 ]

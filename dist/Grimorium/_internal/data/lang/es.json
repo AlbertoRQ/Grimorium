@@ -1,0 +1,292 @@
+{
+  "item": {
+    "book": {
+      "electric": {
+        "detail": [
+          "+{damage_percentage} daño por salto",
+          "+{max_jump_distance} distancia máxima entre saltos"
+        ],
+        "name": "Libro eléctrico",
+        "short": "Mejora los saltos eléctricos entre enemigos"
+      },
+      "electric_poison": {
+        "detail": [
+          "Añade aquí el primer valor del combo",
+          "Añade aquí el segundo valor del combo"
+        ],
+        "name": "Libro de toxina conductora",
+        "short": "Mejora el combo de electricidad y veneno"
+      },
+      "fire": {
+        "detail": [
+          "+{burn_damage} daño por tick",
+          "+{burn_duration}s de quemado"
+        ],
+        "name": "Libro de fuego",
+        "short": "Aumenta el daño y la duración de la quemadura"
+      },
+      "fire_electric": {
+        "detail": [
+          "+{damage_multiplier} daño de fragmentos",
+          "+{fragment_range} alcance de fragmentos"
+        ],
+        "name": "Libro de chispas ígneas",
+        "short": "Mejora los fragmentos creados por fuego y electricidad"
+      },
+      "fire_ice": {
+        "detail": [
+          "+{damage_multiplier} daño al romper el hielo"
+        ],
+        "name": "Libro de choque térmico",
+        "short": "Aumenta el daño al romper el hielo"
+      },
+      "fire_poison": {
+        "detail": [
+          "+{cloud_radius} radio de nube",
+          "+{cloud_duration}s de nube"
+        ],
+        "name": "Libro de nube corrosiva",
+        "short": "Mejora la nube creada por fuego y veneno"
+      },
+      "ice": {
+        "detail": [
+          "+{slow_duration}s de ralentización",
+          "{good:slow_multiplier} multiplicador de velocidad",
+          "+{ice_duration}s de congelación"
+        ],
+        "name": "Libro de hielo",
+        "short": "Mejora la ralentización y la congelación"
+      },
+      "ice_electric": {
+        "detail": [
+          "+{tick_damage} daño por tick",
+          "+{puddle_duration_bonus}s de charco",
+          "+{electric_duration}s electrificado",
+          "+{puddle_size_multiplier} tamaño del charco"
+        ],
+        "name": "Libro de tormenta helada",
+        "short": "Mejora el charco electrificado"
+      },
+      "ice_poison": {
+        "detail": [
+          "+{execute_threshold_per_stack} ejecución por stack",
+          "+{fragile_duration}s de Marca Frágil"
+        ],
+        "name": "Libro de fragilidad tóxica",
+        "short": "Mejora la ejecución contra enemigos frágiles"
+      },
+      "poison": {
+        "detail": [
+          "+{damage_taken_per_stack} daño recibido por stack",
+          "+{boss_duration}s de veneno en jefes"
+        ],
+        "name": "Libro de veneno",
+        "short": "Aumenta el daño acumulado del veneno"
+      }
+    },
+    "level": {
+      "electric": {
+        "detail": [
+          "Daño de la cadena: {good:chain_damage_percent}%",
+          "Saltos máximos: {good:max_targets}",
+          "Distancia de salto: {good:max_jump_distance}"
+        ],
+        "name": "Electricidad - Nivel {level}",
+        "short": "Encadena parte del daño a enemigos cercanos."
+      },
+      "fire": {
+        "detail": [
+          "Daño por tick: {good:burn_damage}",
+          "Duración: {good:burn_duration}s",
+          "Intervalo: {good:burn_tick_timer}s"
+        ],
+        "name": "Fuego - Nivel {level}",
+        "short": "Quema a los enemigos alcanzados."
+      },
+      "fire_electric": {
+        "detail": [
+          "Fragmentos: {good:fragment_count}",
+          "Daño por fragmento: {good:fragment_damage_percent}%",
+          "Alcance: {good:fragment_range}",
+          "Tiempo hasta estallar: {good:embed_duration}s",
+          "Ángulo de dispersión: {good:spread_angle}°"
+        ],
+        "name": "Chispas ígneas - Nivel {level}",
+        "short": "Los proyectiles incrustados estallan en fragmentos."
+      },
+      "fire_ice": {
+        "detail": [
+          "Multiplicador adicional: x{good:damage_multiplier}"
+        ],
+        "name": "Choque térmico - Nivel {level}",
+        "short": "Romper la congelación inflige daño adicional."
+      },
+      "fire_poison": {
+        "detail": [
+          "Radio de la nube: {good:cloud_radius}",
+          "Duración: {good:cloud_duration}s",
+          "Intervalo: {good:tick_time}s",
+          "Veneno por tick: {good:stacks_per_tick}"
+        ],
+        "name": "Nube corrosiva - Nivel {level}",
+        "short": "Los enemigos quemados liberan una nube venenosa."
+      },
+      "ice": {
+        "detail": [
+          "Ralentización: {good:slow_percent}%",
+          "Duración de ralentización: {good:slow_duration}s",
+          "Impactos para congelar: {good:max_ice_stacks}",
+          "Duración de congelación: {good:ice_duration}s",
+          "Recarga de congelación: {good:ice_cooldown}s"
+        ],
+        "name": "Hielo - Nivel {level}",
+        "short": "Ralentiza y congela al acumular impactos."
+      },
+      "ice_electric": {
+        "detail": [
+          "Tamaño del charco: x{good:puddle_size_multiplier}",
+          "Duración adicional: {good:puddle_duration_bonus}s",
+          "Tiempo electrificado: {good:electric_duration}s",
+          "Daño por tick: {good:tick_damage}"
+        ],
+        "name": "Tormenta helada - Nivel {level}",
+        "short": "La congelación crea un charco electrificado."
+      },
+      "ice_poison": {
+        "detail": [
+          "Duración de fragilidad: {good:fragile_duration}s",
+          "Ejecución base: {good:execute_base_percent}%",
+          "Ejecución por acumulación: {good:execute_stack_percent}%"
+        ],
+        "name": "Fragilidad tóxica - Nivel {level}",
+        "short": "El veneno puede ejecutar enemigos congelados."
+      },
+      "poison": {
+        "detail": [
+          "Acumulaciones máximas: {good:max_stacks}",
+          "Daño recibido por acumulación: {good:damage_received_percent}%",
+          "Duración contra jefes: {good:boss_duration}s"
+        ],
+        "name": "Veneno - Nivel {level}",
+        "short": "Acumula veneno y aumenta el daño recibido."
+      }
+    },
+    "potion": {
+      "body_damage": {
+        "detail": [
+          "+{amount} daño por contacto"
+        ],
+        "name": "Poción de contacto",
+        "short": "Aumenta el daño al tocar enemigos"
+      },
+      "damage": {
+        "detail": [
+          "+{amount} daño de disparo"
+        ],
+        "name": "Poción de daño",
+        "short": "Aumenta el daño de tus disparos"
+      },
+      "health": {
+        "detail": [
+          "Recupera toda la vida"
+        ],
+        "name": "Poción de vida",
+        "short": "Recupera toda la vida"
+      },
+      "luck": {
+        "detail": [
+          "+{amount} suerte"
+        ],
+        "name": "Poción de suerte",
+        "short": "Aumenta tu suerte"
+      },
+      "shoot_distance": {
+        "detail": [
+          "+{amount} alcance de disparo"
+        ],
+        "name": "Poción de alcance",
+        "short": "Aumenta la distancia de tus disparos"
+      },
+      "speed": {
+        "detail": [
+          "+{amount} velocidad de movimiento"
+        ],
+        "name": "Poción de velocidad",
+        "short": "Aumenta tu velocidad de movimiento"
+      },
+      "speed_atack": {
+        "detail": [
+          "{good:amount}s entre disparos"
+        ],
+        "name": "Poción de cadencia",
+        "short": "Aumenta tu velocidad de ataque"
+      }
+    },
+    "power": {
+      "big_bullets": {
+        "detail": [
+          "Tamaño: x{good:radius_multiplier}"
+        ],
+        "name": "Balas grandes",
+        "short": "Aumenta el tamaño de los proyectiles."
+      },
+      "double_shot": {
+        "detail": [
+          "Proyectiles: {good:parallel_count}",
+          "Separación: {good:parallel_spacing}"
+        ],
+        "name": "Disparo doble",
+        "short": "Dispara dos proyectiles paralelos."
+      },
+      "electric": {
+        "detail": [
+          "{chance_percent} de probabilidad de aplicar electricidad"
+        ],
+        "name": "Poder eléctrico",
+        "short": "Tus disparos pueden aplicar electricidad"
+      },
+      "fire": {
+        "detail": [
+          "Activa el fuego como elemento principal"
+        ],
+        "name": "Poder de fuego",
+        "short": "Tus disparos aplican fuego"
+      },
+      "ice": {
+        "detail": [
+          "{chance_percent} de probabilidad de aplicar hielo"
+        ],
+        "name": "Poder de hielo",
+        "short": "Tus disparos pueden aplicar hielo"
+      },
+      "poison": {
+        "detail": [
+          "{chance_percent} de probabilidad de aplicar veneno"
+        ],
+        "name": "Poder de veneno",
+        "short": "Tus disparos pueden aplicar veneno"
+      },
+      "rear_shot": {
+        "detail": [
+          "Disparo posterior: {good:rear_shot}"
+        ],
+        "name": "Disparo trasero",
+        "short": "Repite la descarga completa hacia atrás."
+      },
+      "triple_shot": {
+        "detail": [
+          "Proyectiles: {good:fan_count}",
+          "Ángulo: {good:fan_angle}°"
+        ],
+        "name": "Disparo triple",
+        "short": "Dispara tres proyectiles en abanico."
+      }
+    }
+  },
+  "ui": {
+    "tooltip": {
+      "hold_shift": "Mantén Shift para detalles",
+      "release_shift": "Suelta Shift para resumen"
+    }
+  }
+}

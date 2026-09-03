@@ -419,5 +419,35 @@
     "value": 0.5,
     "value_type": "number",
     "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison",
+    "target_scope": "combo",
+    "target": "level",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "level"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison",
+    "target_scope": "combo",
+    "target": "drain_per_second",
+    "operation": "add",
+    "value": -0.04,
+    "value_type": "number",
+    "unit": "charge/s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison",
+    "target_scope": "combo",
+    "target": "tick_damage",
+    "operation": "add",
+    "value": 0.35,
+    "value_type": "number",
+    "unit": "damage"
   }
 ]

@@ -24,6 +24,8 @@ class Player(LivingEntity):
         self.damage = config.PLAYER_DAMAGE
         self.fire_rate = config.PLAYER_FIRE_COOLDOWN
         self.speed = config.PLAYER_SPEED
+        self.toxic_overload_active = False
+        self.toxic_overload_speed_multiplier = 1.0
         self.luck = config.PLAYER_LUCK
         self.shoot_distance = config.PLAYER_SHOOT_DISTANCE
         
@@ -33,8 +35,8 @@ class Player(LivingEntity):
         self.shot_modifiers = set()
 
         self.base_bullet_elements = []
-        # self.extra_bullet_element = {"poison":1, "ice":1, "electric":1}
-        self.extra_bullet_element = {}
+        self.extra_bullet_element = {"poison":0.2, "electric":0.2}
+        # self.extra_bullet_element = {}
         self.power_element_order = []
         self.element_stats = {
             "fire": {
@@ -97,6 +99,15 @@ class Player(LivingEntity):
                 "fragile_duration": 3.0,
                 "execute_base_threshold": 0.03,
                 "execute_threshold_per_stack": 0.02,
+            },
+            "electric_poison": {
+                "level": 1,
+                "radius": 46,
+                "drain_per_second": 0.32,
+                "speed_multiplier": 1.35,
+                "tick_time": 0.35,
+                "tick_damage": 1.0,
+                "charge_decay_factor": 0.70,
             },
         }
 
@@ -173,8 +184,15 @@ class Player(LivingEntity):
         self.velocity_y += move_y * self.acceleration * dt
 
         speed = math.hypot(self.velocity_x, self.velocity_y)
-        if speed > self.speed:
-            scale = self.speed / speed
+
+
+        current_max_speed = self.speed
+
+        if getattr(self, "toxic_overload_active", False):
+            current_max_speed *= self.toxic_overload_speed_multiplier
+
+        if speed > current_max_speed:
+            scale = current_max_speed / speed
             self.velocity_x *= scale
             self.velocity_y *= scale
 

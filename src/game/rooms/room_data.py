@@ -144,7 +144,7 @@ RANDOM_ROOM_CROSS = [
     "     ....    ",
     "     ....    ",
     "............",
-    "............",
+    "....E.......",
     "............",
     "............",
     "    ....    ",
@@ -158,10 +158,10 @@ NORMAL_ROOMS = [
     RANDOM_ROOM_2,
     RANDOM_ROOM_L,
     RANDOM_ROOM_O,
-    RANDOM_ROOM_S,
-    RANDOM_ROOM_BOX,
-    RANDOM_ROOM_ZAP,
-    RANDOM_ROOM_CROSS
+    # RANDOM_ROOM_S,
+    # RANDOM_ROOM_BOX,
+    # RANDOM_ROOM_ZAP,
+    # RANDOM_ROOM_CROSS
 ]
 
 BOSS_ROOMS = [

@@ -11,11 +11,11 @@
       },
       "electric_poison": {
         "detail": [
-          "Add the first combo value here",
-          "Add the second combo value here"
+          "-{good:drain_per_second_abs} drain per second",
+          "+{good:tick_damage} damage per tick"
         ],
-        "name": "Conductive Toxin Book",
-        "short": "Improves the electricity and poison combo"
+        "name": "Toxic Overload Book",
+        "short": "Extends Toxic Overload and increases its field damage"
       },
       "fire": {
         "detail": [
@@ -152,14 +152,24 @@
         "name": "Toxic Fragility - Level {level}",
         "short": "Poison can execute frozen enemies"
       },
-      "poison": {
-        "detail": [
-          "Dmg taken per stack: {good:damage_received_percent}%",
-          "Duration against bosses: {good:boss_duration}s"
-        ],
-        "name": "Poison - Level {level}",
-        "short": "Poison increases damage taken"
-      }
+        "poison": {
+          "detail": [
+            "Dmg taken per stack: {good:damage_received_percent}%",
+            "Duration against bosses: {good:boss_duration}s"
+          ],
+          "name": "Poison - Level {level}",
+          "short": "Poison increases damage taken"
+        },
+        "electric_poison": {
+          "detail": [
+            "Field radius: {good:radius}",
+            "Drain: {good:drain_per_second}/s",
+            "Damage per tick: {good:tick_damage}",
+            "Speed: x{good:speed_multiplier}"
+          ],
+          "name": "Toxic Overload - Level {level}",
+          "short": "An electric toxic field fueled by enemies."
+        }
     },
     "potion": {
       "body_damage": {

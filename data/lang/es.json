@@ -11,11 +11,11 @@
       },
       "electric_poison": {
         "detail": [
-          "Añade aquí el primer valor del combo",
-          "Añade aquí el segundo valor del combo"
+            "-{good:drain_per_second_abs} de descarga por segundo",
+          "+{good:tick_damage} de daño por tick"
         ],
-        "name": "Libro de toxina conductora",
-        "short": "Mejora el combo de electricidad y veneno"
+        "name": "Libro de Sobrecarga Tóxica",
+        "short": "Prolonga la Sobrecarga y aumenta el daño de su campo"
       },
       "fire": {
         "detail": [
@@ -169,6 +169,16 @@
         ],
         "name": "Veneno - Nivel {level}",
         "short": "Acumula veneno y aumenta el daño recibido."
+      },
+      "electric_poison": {
+        "detail": [
+          "Radio del campo: {good:radius}",
+          "Descarga: {good:drain_per_second}/s",
+          "Daño por tick: {good:tick_damage}",
+          "Velocidad: x{good:speed_multiplier}"
+        ],
+        "name": "Sobrecarga Tóxica - Nivel {level}",
+        "short": "Un campo tóxico eléctrico que se alimenta de enemigos."
       }
     },
     "potion": {
