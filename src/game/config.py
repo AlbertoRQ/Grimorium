@@ -27,6 +27,8 @@ PLAYER_SHOOT_DISTANCE = 120
 PLAYER_INVULNERABILITY_TIME = 1
 PLAYER_COINS = 0
 
+PLUS_BOOK_MIN_PURCHASED_BOOKS = 0
+PLUS_BOOK_APPEAR_CHANCE = 1
 
 
 FORWARD_BONUS = 40
@@ -99,6 +101,7 @@ TOOLTIP_STYLES = {
         "title": (135, 45, 24),
         "text": (70, 45, 35),
         "accent": (180, 70, 32),
+        "plus": (125, 108, 5),
         "icon_left": "fire",
         "icon_right": "fire",
     },

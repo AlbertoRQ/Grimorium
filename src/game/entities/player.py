@@ -34,9 +34,12 @@ class Player(LivingEntity):
         self.bullet_type = "normal"
         self.shot_modifiers = set()
 
-        self.base_bullet_elements = []
-        self.extra_bullet_element = {"poison":0.2, "electric":0.2}
-        # self.extra_bullet_element = {}
+        self.books_purchased = 0
+        self.purchased_books = set()
+
+        self.base_bullet_elements = ["fire"]
+        #self.extra_bullet_element = {"poison":0.2, "electric":0.2, "ice": 0.2}
+        self.extra_bullet_element = {}
         self.power_element_order = []
         self.element_stats = {
             "fire": {
@@ -44,6 +47,8 @@ class Player(LivingEntity):
                 "burn_duration": 3,
                 "burn_damage": 0.5,
                 "burn_tick_timer": 0.5,
+                "max_burn_stacks": 1,
+                "burn_hits_per_stack": 0,
             },
             "ice": {
                 "level": 1,

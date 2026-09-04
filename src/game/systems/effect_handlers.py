@@ -4,11 +4,42 @@ from game.systems.ice_puddle import IcePuddle
 
 
 def apply_fire_effect(bullet, enemy, _enemies, _hit_damage):
-    if enemy.status_effects["burn"]["is_burned"] == False:
-        enemy.status_effects["burn"]["is_burned"] = True
-        enemy.status_effects["burn"]["timer"] = bullet.effect_data["fire"]["burn_duration"]
-        enemy.status_effects["burn"]["tick_timer"] = bullet.effect_data["fire"]["burn_tick_timer"]
-        enemy.status_effects["burn"]["damage"] = bullet.effect_data["fire"]["burn_damage"]
+    fire_data = bullet.effect_data["fire"]
+    burn = enemy.status_effects["burn"]
+
+    if not burn["is_burned"]:
+        burn["is_burned"] = True
+        burn["timer"] = fire_data["burn_duration"]
+        burn["tick_timer"] = fire_data["burn_tick_timer"]
+        burn["damage"] = fire_data["burn_damage"]
+        burn["stacks"] = 1
+        burn["hits_to_next_stack"] = 0
+        burn["max_stacks"] = fire_data["max_burn_stacks"]
+        return
+
+    has_accumulated_combustion = (
+        fire_data["max_burn_stacks"] > 1
+    )
+
+    if has_accumulated_combustion:
+        burn["timer"] = fire_data["burn_duration"]
+
+    if burn["stacks"] >= fire_data["max_burn_stacks"]:
+        return
+
+    burn["hits_to_next_stack"] += 1
+
+    if burn["hits_to_next_stack"] < fire_data["burn_hits_per_stack"]:
+        return
+
+    burn["stacks"] += 1
+    burn["hits_to_next_stack"] = 0
+
+    burn["damage"] = (
+        fire_data["burn_damage"]
+        * burn["stacks"]
+    )
+    
 
 def apply_ice_effect(bullet, enemy, _enemies, _hit_damage):
     enemy_status = enemy.status_effects["ice"]

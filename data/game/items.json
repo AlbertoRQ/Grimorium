@@ -264,9 +264,21 @@
     "category": "combo",
     "target_id": "electric_poison",
     "price": 5,
-    "asset": "images/books/_book_poison_electric.bmp",
+    "asset": "images/books/book_poison_electric.bmp",
     "text_key": "item.book.electric_poison",
     "tooltip_style": "electric_poison",
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_plus",
+    "category": "element",
+    "target_id": "fire",
+    "price": 5,
+    "asset": "images/books/book_fire_plus.bmp",
+    "text_key": "item.book.fire_plus",
+    "tooltip_style": "fire",
+    "is_plus": true,
     "enabled": true
   }
 ]

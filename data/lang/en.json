@@ -25,6 +25,13 @@
         "name": "Fire Book",
         "short": "Increases burn damage and duration"
       },
+      "fire_plus": {
+        "detail": [
+          "+{good:max_burn_stacks} maximum burn stacks"
+        ],
+        "name": "Fire +: Accumulated Combustion",
+        "short": "Allows burns to stack on enemies"
+      },
       "fire_electric": {
         "detail": [
           "Dmg per fragment: +{good:fragment_damage_percent}%",
@@ -99,7 +106,12 @@
           "Duration: {good:burn_duration}s"
         ],
         "name": "Fire - Level {level}",
-        "short": "Burns on hit"
+        "short": "Burns on hit",
+        "plus_short": "Burns on hit. [plus]Max: {max_burn_stacks} stacks[/plus]",
+        "plus_detail": [
+          "Damage per tick: {good:burn_damage}",
+          "Duration: {good:burn_duration}s"
+        ]
       },
       "fire_electric": {
         "detail": [

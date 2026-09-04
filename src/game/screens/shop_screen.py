@@ -9,6 +9,24 @@ from game.systems.shop_effects import apply_potion, apply_book, apply_power
 
 from game.utils.paths import asset_path
 
+PLUS_BORDER_STYLE = "pulse"
+PLUS_BORDER_PULSE_STEP_MS = 110
+PLUS_BORDER_SWEEP_STEP_MS = 30
+PLUS_BORDER_SWEEP_COOLDOWN_MS = 1200
+PLUS_BORDER_GOLD_COLORS = [
+    (170, 92, 12), (175, 96, 13), (180, 101, 14),
+    (186, 107, 16), (192, 114, 18), (199, 121, 20),
+    (206, 129, 23), (199, 121, 20), (192, 114, 18), 
+    (186, 107, 16), (180, 101, 14), (175, 96, 13),
+]
+PLUS_BORDER_SWEEP_COLORS = [
+    (219, 140, 30),
+    (232, 160, 48),
+    (243, 185, 72),
+    (232, 160, 48),
+    (219, 140, 30),
+]
+
 class ShopScreen(BaseScreen):
     VIRTUAL_WIDTH = 320
     VIRTUAL_HEIGHT = 180
@@ -227,17 +245,25 @@ class ShopScreen(BaseScreen):
             slot_count = min(slot_count, max_items)
 
         if allow_duplicates:
-            items_to_show = [
-                random.choice(available_items)
-                for _ in range(slot_count)
-            ]
+            items_to_show = []
+            selectable_items = available_items.copy()
+
+            while selectable_items and len(items_to_show) < slot_count:
+                selected_item = random.choice(selectable_items)
+                items_to_show.append(selected_item)
+
+                selected_id = selected_item["id"]
+                selected_data = price_data[selected_id]
+
+                if selected_data.get("is_plus", False):
+                    selectable_items.remove(selected_item)
         else:
             items_to_show = random.sample(
                 available_items,
                 min(len(slots), len(available_items)),
             )
 
-        slots_to_use = random.sample(slots, slot_count)
+        slots_to_use = random.sample(slots, len(items_to_show))
 
         for slot, item_data in zip(slots_to_use, items_to_show):
             rect = self.build_layout_rect(slot, (32, 32))
@@ -335,8 +361,19 @@ class ShopScreen(BaseScreen):
     
 
     def can_book_appear(self, book_id):
-        effect = config.BOOK_DATA[book_id]["effect"]
+        book_data = config.BOOK_DATA[book_id]
+        effect = book_data["effect"]
         owned_elements = self.get_owned_power_elements()
+
+        if book_data.get("is_plus", False):
+            if self.player.books_purchased < config.PLUS_BOOK_MIN_PURCHASED_BOOKS:
+                return False
+
+            if book_id in self.player.purchased_books:
+                return False
+
+            if random.random() >= config.PLUS_BOOK_APPEAR_CHANCE:
+                return False
 
         if "element" in effect:
             return effect["element"] in owned_elements
@@ -516,6 +553,95 @@ class ShopScreen(BaseScreen):
 
             surface.blit(level_image, image_rect)
 
+            plus_book_id = f"{stat_id}_plus"
+            has_plus = plus_book_id in self.player.purchased_books
+
+            if has_plus:
+                if PLUS_BORDER_STYLE == "pulse":
+                    animation_frame = (
+                        pygame.time.get_ticks()
+                        // PLUS_BORDER_PULSE_STEP_MS
+                    )
+
+                    gold_color = PLUS_BORDER_GOLD_COLORS[
+                        animation_frame % len(PLUS_BORDER_GOLD_COLORS)
+                    ]
+                else:
+                    gold_color = (190, 110, 15)
+
+                pygame.draw.rect(
+                    surface,
+                    gold_color,
+                    image_rect,
+                    self.pixel_scale,
+                )
+
+                border_width = image_rect.width
+                border_height = image_rect.height
+                sweep_length = border_width + border_height
+                trail_length = 6 * self.pixel_scale
+                sweep_cycle = sweep_length + trail_length * 2
+                sweep_duration = (
+                    sweep_cycle * PLUS_BORDER_SWEEP_STEP_MS
+                )
+                full_cycle_duration = (
+                    sweep_duration + PLUS_BORDER_SWEEP_COOLDOWN_MS
+                )
+                cycle_time = (
+                    pygame.time.get_ticks() % full_cycle_duration
+                )
+
+                if cycle_time < sweep_duration:
+                    sweep_position = (
+                        (cycle_time // PLUS_BORDER_SWEEP_STEP_MS)
+                        * self.pixel_scale
+                    )
+                else:
+                    sweep_position = sweep_cycle
+
+                def get_top_right_point(position):
+                    if position < border_width:
+                        return image_rect.left + position, image_rect.top
+
+                    return (
+                        image_rect.right - self.pixel_scale,
+                        image_rect.top + position - border_width,
+                    )
+
+                def get_left_bottom_point(position):
+                    if position < border_height:
+                        return image_rect.left, image_rect.top + position
+
+                    return (
+                        image_rect.left + position - border_height,
+                        image_rect.bottom - self.pixel_scale,
+                    )
+
+                for index, sweep_color in enumerate(PLUS_BORDER_SWEEP_COLORS):
+                    trail_position = (
+                        sweep_position - index * self.pixel_scale
+                    )
+
+                    if not 0 <= trail_position < sweep_length:
+                        continue
+
+                    for get_point in (
+                        get_top_right_point,
+                        get_left_bottom_point,
+                    ):
+                        sparkle_x, sparkle_y = get_point(trail_position)
+
+                        pygame.draw.rect(
+                            surface,
+                            sweep_color,
+                            (
+                                sparkle_x,
+                                sparkle_y,
+                                self.pixel_scale,
+                                self.pixel_scale,
+                            ),
+                        )
+
             level_text = self.info_font.render(
                 level_texts[stat_id],
                 True,
@@ -599,6 +725,11 @@ class ShopScreen(BaseScreen):
             "tooltip_style": level_id,
             **stats,
         }
+
+        if level_id == "fire":
+            data["has_accumulated_combustion"] = (
+                "fire_plus" in self.player.purchased_books
+            )
 
         if level_id == "ice":
             data["slow_percent"] = round(
@@ -701,9 +832,17 @@ class ShopScreen(BaseScreen):
 
 
     def get_item_detail_lines(self, item_type, item_id, item_data):
-        detail_lines = self.game.localization.text(
-            f"item.{item_type}.{item_id}.detail",
-            [],
+        detail_key = f"item.{item_type}.{item_id}.detail"
+
+        if (
+            item_type == "level"
+            and item_id == "fire"
+            and item_data.get("has_accumulated_combustion", False)
+        ):
+            detail_key = "item.level.fire.plus_detail"
+
+        detail_lines = list(
+            self.game.localization.text(detail_key, [])
         )
 
         format_data = item_data.copy()
@@ -784,7 +923,16 @@ class ShopScreen(BaseScreen):
         if show_detail and detail_lines:
             body_lines = detail_lines
         else:
-            short = self.game.localization.text(f"{text_key}.short", "")
+            short_key = f"{text_key}.short"
+
+            if (
+                item_type == "level"
+                and item_id == "fire"
+                and item_data.get("has_accumulated_combustion", False)
+            ):
+                short_key = f"{text_key}.plus_short"
+
+            short = self.game.localization.text(short_key, "")
             description = self.game.localization.text(f"{text_key}.description", short)
 
             description = description.format(**item_data)
@@ -995,13 +1143,87 @@ class ShopScreen(BaseScreen):
                 current_y += body_line_gap
 
 
+    def render_plus_tooltip_text(self, text):
+        animation_frame = (
+            pygame.time.get_ticks()
+            // PLUS_BORDER_PULSE_STEP_MS
+        )
+        base_color = PLUS_BORDER_GOLD_COLORS[
+            animation_frame % len(PLUS_BORDER_GOLD_COLORS)
+        ]
+
+        text_surface = self.tooltip_font.render(
+            text,
+            True,
+            base_color,
+        )
+
+        shine_width = 4 * self.pixel_scale
+        sweep_duration = (
+            (
+                  text_surface.get_width()
+                  + text_surface.get_height()
+                + shine_width
+            )
+            * PLUS_BORDER_SWEEP_STEP_MS
+        )
+        full_cycle_duration = (
+            sweep_duration + PLUS_BORDER_SWEEP_COOLDOWN_MS
+        )
+        cycle_time = pygame.time.get_ticks() % full_cycle_duration
+
+        if cycle_time >= sweep_duration:
+            return text_surface
+
+        diagonal_position = (
+            cycle_time // PLUS_BORDER_SWEEP_STEP_MS
+        ) - shine_width
+
+        for index, shine_color in enumerate(PLUS_BORDER_SWEEP_COLORS):
+            shine_surface = self.tooltip_font.render(
+                text,
+                True,
+                shine_color,
+            )
+            shine_mask = pygame.Surface(
+                text_surface.get_size(),
+                pygame.SRCALPHA,
+            )
+            trail_position = (
+                diagonal_position - index * self.pixel_scale
+            )
+
+            pygame.draw.line(
+                shine_mask,
+                (255, 255, 255, 255),
+                (trail_position, 0),
+                (
+                    trail_position - text_surface.get_height(),
+                    text_surface.get_height(),
+                ),
+                shine_width,
+            )
+
+            shine_surface.blit(
+                shine_mask,
+                (0, 0),
+                special_flags=pygame.BLEND_RGBA_MULT,
+            )
+            text_surface.blit(shine_surface, (0, 0))
+
+        return text_surface
+
+
     def render_tooltip_rich_line(self, text, style, item_type, item_id):
         normal_color = style["text"]
         positive_color = style.get("positive", (35, 90, 45))
         negative_color = style.get("negative", (120, 35, 35))
+        plus_color = style.get("plus", (222, 174, 65))
 
-
-        parts = re.split(r"(\[good\].*?\[/good\]|\[bad\].*?\[/bad\]|[+-]?\d+(?:\.\d+)?%?)", text)
+        parts = re.split(
+            r"(\[good\].*?\[/good\]|\[bad\].*?\[/bad\]|\[plus\].*?\[/plus\]|[+-]?\d+(?:\.\d+)?%?)",
+            text,
+        )
 
         rendered_parts = []
 
@@ -1010,6 +1232,7 @@ class ShopScreen(BaseScreen):
                 continue
 
             color = normal_color
+            is_plus_text = False
 
             if part.startswith("[good]") and part.endswith("[/good]"):
                 part = part.replace("[good]", "").replace("[/good]", "")
@@ -1019,16 +1242,24 @@ class ShopScreen(BaseScreen):
                 part = part.replace("[bad]", "").replace("[/bad]", "")
                 color = negative_color
 
+            elif part.startswith("[plus]") and part.endswith("[/plus]"):
+                part = part.replace("[plus]", "").replace("[/plus]", "")
+                color = plus_color
+                is_plus_text = True
+
             elif re.fullmatch(r"[+-]?\d+(?:\.\d+)?%?", part):
                 if part.startswith("-"):
                     color = negative_color
                 else:
                     color = positive_color
 
-            rendered_parts.append((
-                self.tooltip_font.render(part, True, color),
-                part,
-            ))
+            part_surface = (
+                self.render_plus_tooltip_text(part)
+                if is_plus_text
+                else self.tooltip_font.render(part, True, color)
+            )
+
+            rendered_parts.append((part_surface, part))
 
         part_gap = self.pixel_scale
 

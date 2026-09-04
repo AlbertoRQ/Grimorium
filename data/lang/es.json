@@ -25,6 +25,13 @@
         "name": "Libro de fuego",
         "short": "Aumenta el daño y la duración de la quemadura"
       },
+      "fire_plus": {
+        "detail": [
+          "+{good:max_burn_stacks} acumulaciones máximas de quemado"
+        ],
+        "name": "Fuego +: Combustión acumulada",
+        "short": "Permite acumular quemaduras sobre los enemigos"
+      },
       "fire_electric": {
         "detail": [
           "+{damage_multiplier} daño de fragmentos",
@@ -101,7 +108,12 @@
           "Intervalo: {good:burn_tick_timer}s"
         ],
         "name": "Fuego - Nivel {level}",
-        "short": "Quema a los enemigos alcanzados."
+        "short": "Quema a los enemigos alcanzados.",
+        "plus_short": "Quema a los enemigos alcanzados. [plus]Max: {max_burn_stacks} acumulaciones[/plus]",
+        "plus_detail": [
+          "Daño por tick: {good:burn_damage}",
+          "Duración: {good:burn_duration}s"
+        ]
       },
       "fire_electric": {
         "detail": [

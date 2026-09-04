@@ -14,6 +14,9 @@ def apply_potion(player, potion_id):
 
 
 def apply_book(player, book_id):
+    player.books_purchased += 1
+    player.purchased_books.add(book_id)
+
     effect = config.BOOK_DATA[book_id]["effect"]
 
     if "combo" in effect:

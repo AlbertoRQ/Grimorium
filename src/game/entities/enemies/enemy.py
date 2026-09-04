@@ -40,6 +40,9 @@ class Enemy(LivingEntity):
                 "timer": 0,
                 "tick_timer": 0,
                 "damage": 0,
+                "stacks": 0,
+                "hits_to_next_stack": 0,
+                "max_stacks": 1,
             },
             "ice": {
                 "is_slowed": False,
@@ -143,6 +146,11 @@ class Enemy(LivingEntity):
         else:
             burn["is_burned"] = False
             burn["timer"] = 0
+            burn["tick_timer"] = 0
+            burn["damage"] = 0
+            burn["stacks"] = 0
+            burn["hits_to_next_stack"] = 0
+            burn["max_stacks"] = 1
 
         if self.damage_flash_timer > 0:
             self.damage_flash_timer -= dt
@@ -276,6 +284,7 @@ class Enemy(LivingEntity):
         surface.blit(sprite, rect)
 
         self.draw_status_marks(surface)
+        self.draw_burn_stack_marks(surface)
 
 
 
@@ -320,5 +329,43 @@ class Enemy(LivingEntity):
                 mark_radius,
             )
 
+    def draw_burn_stack_marks(self, surface):
+        burn = self.status_effects["burn"]
 
-    
+        if not burn["is_burned"] or burn["max_stacks"] <= 1:
+            return
+
+        marks = []
+
+        extra_stacks = burn["stacks"] - 1
+        for _ in range(extra_stacks):
+            marks.append(("stack", 5, (255, 80, 25)))
+
+        for _ in range(burn["hits_to_next_stack"]):
+            marks.append(("progress", 3, (255, 155, 35)))
+
+        if not marks:
+            return
+
+        spacing = 11
+        total_width = (len(marks) - 1) * spacing
+        start_x = self.x - total_width / 2
+        y = self.y - self.radius - 22
+
+        for index, (_name, radius, color) in enumerate(marks):
+            x = start_x + index * spacing
+
+            pygame.draw.circle(
+                surface,
+                (35, 15, 10),
+                (int(x), int(y)),
+                radius + 1,
+            )
+
+            pygame.draw.circle(
+                surface,
+                color,
+                (int(x), int(y)),
+                radius,
+            )
+        

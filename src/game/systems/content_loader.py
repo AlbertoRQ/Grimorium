@@ -61,6 +61,9 @@ def load_shop_content():
         if item.get("tooltip_style"):
             common["tooltip_style"] = item["tooltip_style"]
 
+        if item.get("is_plus", False):
+            common["is_plus"] = True
+
         owned_effects = effects_by_owner[(item_type, item_id)]
 
         if item_type == "potion":

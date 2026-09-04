@@ -449,5 +449,25 @@
     "value": 0.35,
     "value_type": "number",
     "unit": "damage"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_plus",
+    "target_scope": "element",
+    "target": "max_burn_stacks",
+    "operation": "add",
+    "value": 2,
+    "value_type": "int",
+    "unit": "stacks"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_plus",
+    "target_scope": "element",
+    "target": "burn_hits_per_stack",
+    "operation": "add",
+    "value": 3,
+    "value_type": "int",
+    "unit": "hits"
   }
 ]
