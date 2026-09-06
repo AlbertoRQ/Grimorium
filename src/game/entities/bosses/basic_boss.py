@@ -88,7 +88,7 @@ class BasicBoss(Enemy):
         old_x = self.x
         old_y = self.y
 
-        move_x = self.direction_x * self.speed * dt
+        move_x = self.direction_x * self.get_movement_speed() * dt
         move_y = 0
         
         self.move_by(move_x, 0, blockers, entities)

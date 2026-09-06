@@ -72,10 +72,9 @@ def try_apply_combo(bullet, enemy, element, hit_damage):
     for state in active_states:
         combo_handler = ELEMENTAL_COMBOS.get((element, state))
         if combo_handler is not None:
-            combo_handler(bullet, enemy, hit_damage)
-            return True
+            return True, combo_handler(bullet, enemy, hit_damage)
 
-    return False
+    return False, None
 
 def create_poison_cloud_if_needed(bullet, enemy):
     burn = enemy.status_effects["burn"]
@@ -97,7 +96,19 @@ def create_poison_cloud_if_needed(bullet, enemy):
     if combo_data is None or poison_data is None:
         return None
 
-    return PoisonCloud(enemy.x, enemy.y, combo_data, poison_data)
+    cloud_float_height = max(
+        combo_data["cloud_float_height"],
+        combo_data["cloud_radius"]
+        * combo_data["cloud_float_radius_multiplier"],
+    )
+
+    return PoisonCloud(
+        enemy.x,
+        enemy.y - cloud_float_height,
+        combo_data,
+        poison_data,
+        rain_origin_y=enemy.y,
+    )
 
 def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multiplier=1):
     bullets_left = []
@@ -120,7 +131,16 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multipl
                     enemy.apply_knockback(bullet.vel_x / length, bullet.vel_y / length, knockback_strength)
 
                 for element in bullet.elements:
-                    if try_apply_combo(bullet, enemy, element, damage):
+                    combo_applied, combo_effect = try_apply_combo(
+                        bullet,
+                        enemy,
+                        element,
+                        damage,
+                    )
+
+                    if combo_applied:
+                        if combo_effect:
+                            created_effects.extend(combo_effect)
                         continue
 
                     effect = ELEMENT_EFFECTS.get(element)
@@ -128,7 +148,10 @@ def resolve_player_bullets_vs_enemies(bullets, enemies, blockers, damage_multipl
                         created_effect = effect(bullet, enemy, enemies_left, damage)
 
                         if created_effect is not None:
-                            created_effects.append(created_effect)
+                            if isinstance(created_effect, list):
+                                created_effects.extend(created_effect)
+                            else:
+                                created_effects.append(created_effect)
 
                 bullet_hit = True
 

@@ -4,7 +4,16 @@ import pygame
 
 
 class ElectricChain:
-    def __init__(self, source, damage, max_jumps, max_jump_distance, jump_duration=0.15):
+    def __init__(
+        self,
+        source,
+        damage,
+        max_jumps,
+        max_jump_distance,
+        jump_duration=0.15,
+        can_second_discharge=False,
+        is_second_discharge=False,
+    ):
         self.source = source
         self.target = None
 
@@ -15,9 +24,27 @@ class ElectricChain:
 
         self.jump_duration = jump_duration
         self.timer = 0
+        self.can_second_discharge = can_second_discharge
+        self.is_second_discharge = is_second_discharge
 
         self.visited = {source}
         self.finished = False
+
+    def create_second_discharge(self):
+        if not self.can_second_discharge or self.is_second_discharge:
+            return []
+
+        return [
+            ElectricChain(
+                source=self.source,
+                damage=self.damage,
+                max_jumps=self.max_jumps,
+                max_jump_distance=self.max_jump_distance,
+                jump_duration=self.jump_duration,
+                can_second_discharge=False,
+                is_second_discharge=True,
+            )
+        ]
 
     def find_next_target(self, enemies):
         possible_targets = []
@@ -47,14 +74,14 @@ class ElectricChain:
 
     def update(self, dt, enemies):
         if self.finished:
-            return
+            return []
 
         if self.target is None:
             self.target = self.find_next_target(enemies)
 
             if self.target is None:
                 self.finished = True
-                return
+                return self.create_second_discharge()
 
         self.timer += dt
 
@@ -70,6 +97,9 @@ class ElectricChain:
 
             if self.jumps_done >= self.max_jumps:
                 self.finished = True
+                return self.create_second_discharge()
+
+        return []
 
 
     def draw(self, surface):
@@ -111,5 +141,8 @@ class ElectricChain:
 
         points.append((end_x, end_y))
 
-        pygame.draw.lines(surface, (255, 233, 59), False, points, 3)
-        pygame.draw.lines(surface, (255, 253, 253), False, points, 1)
+        outer_color = (255, 233, 59)
+        inner_color = (255, 253, 253)
+
+        pygame.draw.lines(surface, outer_color, False, points, 3)
+        pygame.draw.lines(surface, inner_color, False, points, 1)

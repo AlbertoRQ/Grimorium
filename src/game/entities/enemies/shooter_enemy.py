@@ -77,8 +77,9 @@ class ShooterEnemy(Enemy):
             self.visual.set_state("idle")
             return
 
-        move_x = direction * (diff_x / distance) * self.speed * dt
-        move_y = direction * (diff_y / distance) * self.speed * dt
+        movement_speed = self.get_movement_speed()
+        move_x = direction * (diff_x / distance) * movement_speed * dt
+        move_y = direction * (diff_y / distance) * movement_speed * dt
 
         old_x = self.x
         old_y = self.y

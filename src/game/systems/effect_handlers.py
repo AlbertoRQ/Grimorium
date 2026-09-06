@@ -1,10 +1,9 @@
 import math
 from game.systems.electric_chain import ElectricChain
-from game.systems.ice_puddle import IcePuddle
+from game.systems.frost_wave import freeze_enemy
 
 
-def apply_fire_effect(bullet, enemy, _enemies, _hit_damage):
-    fire_data = bullet.effect_data["fire"]
+def apply_fire_data(enemy, fire_data):
     burn = enemy.status_effects["burn"]
 
     if not burn["is_burned"]:
@@ -39,44 +38,31 @@ def apply_fire_effect(bullet, enemy, _enemies, _hit_damage):
         fire_data["burn_damage"]
         * burn["stacks"]
     )
+
+
+def apply_fire_effect(bullet, enemy, _enemies, _hit_damage):
+    apply_fire_data(enemy, bullet.effect_data["fire"])
     
 
 def apply_ice_effect(bullet, enemy, _enemies, _hit_damage):
-    enemy_status = enemy.status_effects["ice"]
+    ice_data = bullet.effect_data["ice"]
+    ice = enemy.status_effects["ice"]
 
-    if enemy_status["ice_cooldown"] > 0 or enemy_status["is_ice"]:
+    if ice["ice_cooldown"] > 0 or ice["is_ice"]:
         return
 
-    enemy_status["stacks"] += 1
+    ice["stacks"] += 1
 
-    if enemy_status["stacks"] >= bullet.effect_data["ice"]["max_ice_stacks"]:
-        enemy_status["is_ice"] = True
-        enemy_status["cooldown_value"] = bullet.effect_data["ice"]["ice_cooldown"]
-        enemy_status["ice_timer"] = bullet.effect_data["ice"]["ice_duration"]
-        enemy_status["is_slowed"] = False
-        enemy_status["slow_timer"] = 0
-
-        fragile = enemy.status_effects["fragile"]
-        fragile["timer"] = bullet.effect_data["combos"]["ice_poison"]["fragile_duration"]
-        
-        combo_data = bullet.effect_data["combos"]["ice_electric"]
-
-        puddle_duration = (
-            bullet.effect_data["ice"]["ice_duration"]
-            + combo_data["puddle_duration_bonus"]
+    if ice["stacks"] >= ice_data["max_ice_stacks"]:
+        return freeze_enemy(
+            enemy,
+            ice_data,
+            bullet.effect_data["combos"],
         )
 
-        return IcePuddle(
-            enemy.x,
-            enemy.y + enemy.radius * 0.45,
-            enemy.radius,
-            puddle_duration,
-            combo_data,
-        )
-
-    enemy_status["is_slowed"] = True
-    enemy_status["slow_timer"] = bullet.effect_data["ice"]["slow_duration"]
-    enemy_status["multiplier"] = bullet.effect_data["ice"]["slow_multiplier"]
+    ice["is_slowed"] = True
+    ice["slow_timer"] = ice_data["slow_duration"]
+    ice["multiplier"] = ice_data["slow_multiplier"]
 
 
 def apply_electric_effect(bullet, enemy, _enemies, hit_damage):
@@ -85,38 +71,87 @@ def apply_electric_effect(bullet, enemy, _enemies, hit_damage):
     damage = hit_damage * electric_data["damage_percentage"]
     max_jumps = electric_data["max_targets"]
     max_jump_distance = electric_data["max_jump_distance"]
+    can_second_discharge = (
+        electric_data["second_discharge_chains"] > 0
+    )
 
     return ElectricChain(
         source=enemy,
         damage=damage,
         max_jumps=max_jumps,
         max_jump_distance=max_jump_distance,
+        can_second_discharge=can_second_discharge,
     )
 
 
 def apply_poison_effect(bullet, enemy, _enemies, _hit_damage):
-    poison_data = bullet.effect_data["poison"]
+    apply_poison_data(
+        enemy,
+        bullet.effect_data["poison"],
+        bullet.effect_data["combos"]["ice_poison"],
+    )
+
+
+def apply_poison_data(enemy, poison_data, ice_poison_data):
     poison = enemy.status_effects["poison"]
 
     poison["max_stacks"] = poison_data["max_stacks"]
     poison["damage_taken_per_stack"] = poison_data["damage_taken_per_stack"]
+    poison["boss_stack_decay_interval"] = poison_data[
+        "boss_stack_decay_interval"
+    ]
     poison["stacks"] = min(poison["stacks"] + 1, poison["max_stacks"])
 
-    try_execute_fragile_enemy(bullet, enemy)
+    sentence_enemy_if_needed(
+        enemy,
+        poison,
+        ice_poison_data,
+    )
+
+    try_execute_fragile_enemy(enemy, ice_poison_data)
 
     if getattr(enemy, "is_boss", False):
         poison["timer"] = poison_data["boss_duration"]
+        poison["stack_decay_timer"] = 0
+        poison["is_stack_decay_active"] = False
 
 
-def try_execute_fragile_enemy(bullet, enemy):
+def sentence_enemy_if_needed(enemy, poison, combo_data):
+    fragile = enemy.status_effects["fragile"]
+
+    if (
+        combo_data["sentence_enabled"] <= 0
+        or fragile["timer"] <= 0
+        or poison["stacks"] < poison["max_stacks"]
+    ):
+        return
+
+    fragile["is_sentenced"] = True
+    fragile["sentence_threshold"] = (
+        combo_data["execute_base_threshold"]
+        + poison["stacks"] * combo_data["execute_threshold_per_stack"]
+    )
+
+
+def try_execute_fragile_enemy(enemy, combo_data):
     fragile = enemy.status_effects["fragile"]
 
     if fragile["timer"] <= 0:
         return
 
-    poison = enemy.status_effects["poison"]
-    combo_data = bullet.effect_data["combos"]["ice_poison"]
+    # Sentencia se resuelve desde take_damage para que cualquier fuente de
+    # daño pueda activarla. La marca queda visible hasta ese siguiente daño.
+    if fragile["is_sentenced"]:
+        return
 
+    # Una vez preparada la ejecución, el siguiente impacto de veneno mata.
+    # No se ejecuta al preparar el estado: así se llega a dibujar la marca.
+    if fragile["is_ready_to_execute"]:
+        enemy.health = 0
+        enemy.damage_flash_timer = 0.15
+        return
+
+    poison = enemy.status_effects["poison"]
     stacks = poison["stacks"]
 
     if stacks <= 0:
@@ -130,8 +165,7 @@ def try_execute_fragile_enemy(bullet, enemy):
     health_ratio = enemy.health / enemy.max_health
 
     if health_ratio <= execute_threshold:
-        enemy.health = 0
-        enemy.damage_flash_timer = 0.15
+        fragile["is_ready_to_execute"] = True
 
 
 ELEMENT_EFFECTS = {

@@ -12,8 +12,11 @@ from game.systems.collisions import (
 )
 from game.systems.voltaic_fragmentation import VoltaicFragmentation
 from game.systems.poison_cloud import PoisonCloud
+from game.systems.lava_drop import LavaDrop
 from game.systems.ice_puddle import IcePuddle
 from game.systems.toxic_overload import ToxicOverload
+from game.systems.toxic_trail import ToxicTrail
+from game.entities.bullets.bullet import Bullet
 
 from game.entities.triggers.trigger import Trigger
 
@@ -43,7 +46,9 @@ class CombatScreen(BaseScreen):
         self.voltaic_fragmentations = []
         self.ice_puddles = []
         self.poison_clouds = []
+        self.lava_drops = []
         self.toxic_overload = None
+        self.toxic_trail = None
 
         self.enemies = []
         self.enemies_bullets = []
@@ -260,6 +265,13 @@ class CombatScreen(BaseScreen):
                         combo_data,
                     )
 
+                    if combo_data["trail_enabled"]:
+                        if self.toxic_trail is None:
+                            self.toxic_trail = ToxicTrail(
+                                combo_data,
+                                bullet.effect_data,
+                            )
+
                     self.player.toxic_overload_active = True
                     self.player.toxic_overload_speed_multiplier = (
                         self.toxic_overload.speed_multiplier
@@ -287,6 +299,7 @@ class CombatScreen(BaseScreen):
 
         for bullet in self.bullets:
             bullet.update(dt, blockers)
+            self.ignite_poison_clouds(bullet)
 
             if bullet.hit_wall and self.has_voltaic_fragmentation(bullet):
                 original_damage = bullet.damage * self.player.damage
@@ -294,6 +307,18 @@ class CombatScreen(BaseScreen):
                 effect = VoltaicFragmentation(
                     bullet,
                     original_damage,
+                    can_refragment=self.has_voltaic_refragmentation(bullet),
+                )
+
+                self.voltaic_fragmentations.append(effect)
+
+            elif bullet.hit_wall and bullet.can_refragment:
+                original_damage = bullet.damage * self.player.damage
+
+                effect = VoltaicFragmentation(
+                    bullet,
+                    original_damage,
+                    is_refragmentation=True,
                 )
 
                 self.voltaic_fragmentations.append(effect)
@@ -322,7 +347,9 @@ class CombatScreen(BaseScreen):
         self.player.coins += coins_gained
 
         for effect in created_effects:
-            if isinstance(effect, IcePuddle):
+            if isinstance(effect, Bullet):
+                self.bullets.append(effect)
+            elif isinstance(effect, IcePuddle):
                 self.ice_puddles.append(effect)
             elif isinstance(effect, PoisonCloud):
                 self.poison_clouds.append(effect)
@@ -360,6 +387,9 @@ class CombatScreen(BaseScreen):
     def draw_world(self, surface):
         self.room.draw(surface)
 
+        if self.toxic_trail is not None:
+            self.toxic_trail.draw(surface)
+
         if self.toxic_overload is not None:
             self.toxic_overload.draw(surface)
 
@@ -385,6 +415,9 @@ class CombatScreen(BaseScreen):
     def draw_effects(self, surface):
         for cloud in self.poison_clouds:
             cloud.draw(surface)
+
+        for lava_drop in self.lava_drops:
+            lava_drop.draw(surface)
 
         for effect in self.voltaic_fragmentations:
             effect.draw(surface)
@@ -534,13 +567,20 @@ class CombatScreen(BaseScreen):
             self.player.coins += time_coins     
 
     def update_combat_effects(self, dt):
+        new_effects = []
+
         for effect in self.combat_effects:
-            effect.update(dt, self.enemies)
+            created_effects = effect.update(dt, self.enemies)
+
+            if created_effects:
+                new_effects.extend(created_effects)
 
         self.combat_effects = [
             effect for effect in self.combat_effects
             if not effect.finished
         ]
+
+        self.combat_effects.extend(new_effects)
 
 
     def has_voltaic_fragmentation(self, bullet):
@@ -550,6 +590,13 @@ class CombatScreen(BaseScreen):
             required_elements.issubset(set(bullet.elements))
             and bullet.can_fragment
         )
+
+    def has_voltaic_refragmentation(self, bullet):
+        combo_data = bullet.effect_data.get("combos", {}).get(
+            "fire_electric",
+            {},
+        )
+        return combo_data.get("refragment_divisor", 0) > 0
     
 
     def update_voltaic_fragmentations(self, dt):
@@ -568,6 +615,9 @@ class CombatScreen(BaseScreen):
         self.bullets.extend(new_fragments)
 
     def update_ice_puddles(self, dt):
+        for enemy in self.enemies:
+            enemy.puddle_slow_multiplier = 1.0
+
         for puddle in self.ice_puddles:
             puddle.update(dt, self.enemies)
 
@@ -577,13 +627,35 @@ class CombatScreen(BaseScreen):
         ]
 
     def update_poison_clouds(self, dt):
+        new_lava_drops = []
+
         for cloud in self.poison_clouds:
-            cloud.update(dt, self.enemies)
+            new_lava_drops.extend(cloud.update(dt, self.enemies))
 
         self.poison_clouds = [
             cloud for cloud in self.poison_clouds
             if not cloud.expired
         ]
+
+        self.lava_drops.extend(new_lava_drops)
+
+        for lava_drop in self.lava_drops:
+            lava_drop.update(dt, self.enemies)
+
+        self.lava_drops = [
+            lava_drop for lava_drop in self.lava_drops
+            if not lava_drop.finished
+        ]
+
+    def ignite_poison_clouds(self, bullet):
+        if "fire" not in bullet.elements:
+            return
+
+        fire_data = bullet.effect_data.get("fire")
+
+        for cloud in self.poison_clouds:
+            if cloud.contains_entity(bullet):
+                cloud.ignite(fire_data)
 
     def electrify_ice_puddles(self):
         for bullet in self.bullets:
@@ -602,6 +674,16 @@ class CombatScreen(BaseScreen):
                 self.toxic_overload = None
                 self.player.toxic_overload_active = False
                 self.player.toxic_overload_speed_multiplier = 1.0
+
+    def update_toxic_trail(self, dt):
+        if self.toxic_trail is None:
+            return
+
+        player = self.player if self.toxic_overload is not None else None
+        self.toxic_trail.update(dt, self.enemies, player)
+
+        if self.toxic_trail.finished:
+            self.toxic_trail = None
     
 
     def update_player_phase(self, dt, blockers):
@@ -620,6 +702,7 @@ class CombatScreen(BaseScreen):
 
     def update_effect_phase(self, dt):
         self.update_toxic_overload(dt)
+        self.update_toxic_trail(dt)
         self.update_ice_puddles(dt)
         self.update_poison_clouds(dt)
         self.update_combat_effects(dt)

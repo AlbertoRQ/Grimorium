@@ -27,6 +27,9 @@ class IcePuddle:
         self.tick_timer = 0
         self.tick_interval = 0.35
         self.tick_damage = combo_data["tick_damage"]
+        self.slow_multiplier = combo_data[
+            "electrified_slow_multiplier"
+        ]
 
     def electrify(self):
         self.electrified = True
@@ -69,6 +72,7 @@ class IcePuddle:
         if self.electrified:
             self.electric_timer -= dt
             self.tick_timer -= dt
+            self.slow_enemies(enemies or [])
 
             if self.tick_timer <= 0:
                 self.damage_enemies(enemies or [])
@@ -88,6 +92,19 @@ class IcePuddle:
 
             if self.contains_entity(enemy):
                 enemy.take_damage(self.tick_damage)
+
+    def slow_enemies(self, enemies):
+        if self.slow_multiplier >= 1:
+            return
+
+        for enemy in enemies:
+            if enemy.is_dead() or not self.contains_entity(enemy):
+                continue
+
+            enemy.puddle_slow_multiplier = min(
+                enemy.puddle_slow_multiplier,
+                self.slow_multiplier,
+            )
 
     def get_scale(self):
         if self.timer < self.grow_duration:

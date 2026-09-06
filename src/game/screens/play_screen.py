@@ -8,8 +8,8 @@ from game.entities.enemies.golem_enemy import GolemEnemy
 from game.entities.enemies.dragon_enemy import DragonEnemy
 
 
-#ENEMY_TYPES = [GoblinEnemy, GolemEnemy, DragonEnemy, RatEnemy]
-ENEMY_TYPES = [GolemEnemy]
+ENEMY_TYPES = [GoblinEnemy, GolemEnemy, DragonEnemy, RatEnemy]
+#ENEMY_TYPES = [GolemEnemy]
 
 
 class PlayScreen(CombatScreen):

@@ -170,31 +170,55 @@
     "tooltip_style": "fire",
     "enabled": true
   },
-  {
-    "type": "book",
-    "id": "ice",
+    {
+      "type": "book",
+      "id": "ice",
     "category": "element",
     "target_id": "ice",
     "price": 5,
     "asset": "images/books/book_ice.bmp",
     "text_key": "item.book.ice",
-    "tooltip_style": "ice",
-    "enabled": true
-  },
-  {
-    "type": "book",
-    "id": "electric",
+      "tooltip_style": "ice",
+      "enabled": true
+    },
+    {
+      "type": "book",
+      "id": "ice_plus",
+      "category": "element",
+      "target_id": "ice",
+      "price": 5,
+      "asset": "images/books/book_ice_plus.bmp",
+      "text_key": "item.book.ice_plus",
+      "tooltip_style": "ice",
+      "is_plus": true,
+      "enabled": true
+    },
+    {
+      "type": "book",
+      "id": "electric",
     "category": "element",
     "target_id": "electric",
     "price": 5,
     "asset": "images/books/book_electric.bmp",
     "text_key": "item.book.electric",
-    "tooltip_style": "electric",
-    "enabled": true
-  },
-  {
-    "type": "book",
-    "id": "poison",
+      "tooltip_style": "electric",
+      "enabled": true
+    },
+    {
+      "type": "book",
+      "id": "electric_plus",
+      "category": "element",
+      "target_id": "electric",
+      "price": 5,
+      "asset": "images/books/book_electric_plus.bmp",
+      "text_key": "item.book.electric_plus",
+      "tooltip_style": "electric",
+      "is_plus": true,
+      "enabled": true
+    },
+    {
+      "type": "book",
+      "id": "poison",
     "category": "element",
     "target_id": "poison",
     "price": 5,
@@ -278,6 +302,90 @@
     "asset": "images/books/book_fire_plus.bmp",
     "text_key": "item.book.fire_plus",
     "tooltip_style": "fire",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "poison_plus",
+    "category": "element",
+    "target_id": "poison",
+    "price": 5,
+    "asset": "images/books/book_poison_plus.bmp",
+    "text_key": "item.book.poison_plus",
+    "tooltip_style": "poison",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_ice_plus",
+    "category": "combo",
+    "target_id": "fire_ice",
+    "price": 5,
+    "asset": "images/books/book_fire_ice_plus.bmp",
+    "text_key": "item.book.fire_ice_plus",
+    "tooltip_style": "fire_ice",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "ice_electric_plus",
+    "category": "combo",
+    "target_id": "ice_electric",
+    "price": 5,
+    "asset": "images/books/book_ice_electric_plus.bmp",
+    "text_key": "item.book.ice_electric_plus",
+    "tooltip_style": "ice_electric",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_electric_plus",
+    "category": "combo",
+    "target_id": "fire_electric",
+    "price": 5,
+    "asset": "images/books/book_fire_electric_plus.bmp",
+    "text_key": "item.book.fire_electric_plus",
+    "tooltip_style": "fire_electric",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "fire_poison_plus",
+    "category": "combo",
+    "target_id": "fire_poison",
+    "price": 5,
+    "asset": "images/books/book_fire_poison_plus.bmp",
+    "text_key": "item.book.fire_poison_plus",
+    "tooltip_style": "fire_poison",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "ice_poison_plus",
+    "category": "combo",
+    "target_id": "ice_poison",
+    "price": 5,
+    "asset": "images/books/book_ice_poison_plus.bmp",
+    "text_key": "item.book.ice_poison_plus",
+    "tooltip_style": "ice_poison",
+    "is_plus": true,
+    "enabled": true
+  },
+  {
+    "type": "book",
+    "id": "electric_poison_plus",
+    "category": "combo",
+    "target_id": "electric_poison",
+    "price": 5,
+    "asset": "images/books/book_poison_electric_plus.bmp",
+    "text_key": "item.book.electric_poison_plus",
+    "tooltip_style": "electric_poison",
     "is_plus": true,
     "enabled": true
   }

@@ -406,7 +406,7 @@
     "target_scope": "combo",
     "target": "execute_threshold_per_stack",
     "operation": "add",
-    "value": 0.02,
+    "value": 0.005,
     "value_type": "number",
     "unit": "ratio"
   },
@@ -469,5 +469,165 @@
     "value": 3,
     "value_type": "int",
     "unit": "hits"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_plus",
+    "target_scope": "element",
+    "target": "frost_wave_radius",
+    "operation": "add",
+    "value": 60,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_plus",
+    "target_scope": "element",
+    "target": "frost_wave_duration",
+    "operation": "add",
+    "value": 0.3,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_plus",
+    "target_scope": "element",
+    "target": "second_discharge_chains",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "chain"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "poison_plus",
+    "target_scope": "element",
+    "target": "boss_stack_decay_interval",
+    "operation": "add",
+    "value": 2,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_ice_plus",
+    "target_scope": "combo",
+    "target": "thermal_fragment_count",
+    "operation": "add",
+    "value": 8,
+    "value_type": "int",
+    "unit": "fragments"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_electric_plus",
+    "target_scope": "combo",
+    "target": "electrified_slow_multiplier",
+    "operation": "add",
+    "value": -0.25,
+    "value_type": "number",
+    "unit": "ratio"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_electric_plus",
+    "target_scope": "combo",
+    "target": "refragment_divisor",
+    "operation": "add",
+    "value": 2,
+    "value_type": "int",
+    "unit": "divisor"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison_plus",
+    "target_scope": "combo",
+    "target": "ignited_duration_multiplier",
+    "operation": "add",
+    "value": 1.0,
+    "value_type": "number",
+    "unit": "multiplier"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "fire_poison_plus",
+    "target_scope": "combo",
+    "target": "lava_drop_interval",
+    "operation": "add",
+    "value": 0.1,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "ice_poison_plus",
+    "target_scope": "combo",
+    "target": "sentence_enabled",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "enabled"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison_plus",
+    "target_scope": "combo",
+    "target": "trail_enabled",
+    "operation": "add",
+    "value": 1,
+    "value_type": "bool",
+    "unit": "enabled"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison_plus",
+    "target_scope": "combo",
+    "target": "trail_duration",
+    "operation": "add",
+    "value": 2.5,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison_plus",
+    "target_scope": "combo",
+    "target": "trail_radius",
+    "operation": "add",
+    "value": 13,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison_plus",
+    "target_scope": "combo",
+    "target": "trail_segment_spacing",
+    "operation": "add",
+    "value": 8,
+    "value_type": "int",
+    "unit": "px"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison_plus",
+    "target_scope": "combo",
+    "target": "trail_tick_time",
+    "operation": "add",
+    "value": 0.4,
+    "value_type": "number",
+    "unit": "s"
+  },
+  {
+    "owner_type": "book",
+    "owner_id": "electric_poison_plus",
+    "target_scope": "combo",
+    "target": "trail_stacks_per_tick",
+    "operation": "add",
+    "value": 1,
+    "value_type": "int",
+    "unit": "stacks"
   }
 ]

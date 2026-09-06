@@ -104,9 +104,16 @@ def load_shop_content():
         if item_type == "book":
             scope_key = item["category"]
             effect_data = {scope_key: item["target_id"]}
+            effect_units = {}
             for effect in owned_effects:
-                effect_data[effect["target"]] = _coerce_effect_value(effect)
-            books[item_id] = {**common, "effect": effect_data}
+                target = effect["target"]
+                effect_data[target] = _coerce_effect_value(effect)
+                effect_units[target] = effect.get("unit")
+            books[item_id] = {
+                **common,
+                "effect": effect_data,
+                "effect_units": effect_units,
+            }
             continue
 
         raise ValueError(f"Tipo de objeto desconocido: {item_type}")

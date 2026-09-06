@@ -5,6 +5,14 @@ from game import config
 from game.entities.entity import LivingEntity
 
 
+# Humo visual que indica que la ventana de Marca Frágil sigue activa.
+FRAGILE_MIST_COLOR = (175, 224, 250)
+FRAGILE_MIST_MAX_ALPHA = 70
+FRAGILE_MIST_PUFF_COUNT = 3
+FRAGILE_MIST_SPEED = 0.65
+FRAGILE_MIST_SIZE_MULTIPLIER = 2.4
+
+
 class Enemy(LivingEntity):
     def __init__(
         self,
@@ -20,6 +28,7 @@ class Enemy(LivingEntity):
 
         super().__init__(x, y, radius, color, color, max_health)
 
+        self.puddle_slow_multiplier = 1.0
         self.speed = speed
         self.damage = damage
         self.body_damage = config.ENEMY_BODY_DAMAGE
@@ -60,9 +69,17 @@ class Enemy(LivingEntity):
                 "timer": 0,
                 "max_stacks": 5,
                 "damage_taken_per_stack": 0.05,
+                "boss_stack_decay_interval": 0,
+                "stack_decay_timer": 0,
+                "is_stack_decay_active": False,
             },
             "fragile": {
                 "timer": 0,
+                "is_ready_to_execute": False,
+                "is_sentenced": False,
+                "sentence_threshold": 0,
+                "execute_base_threshold": 0,
+                "execute_threshold_per_stack": 0,
             },
         }
 
@@ -76,10 +93,22 @@ class Enemy(LivingEntity):
         if distance <= 0:
             return
 
-        move_x = (diff_x / distance) * self.speed * dt
-        move_y = (diff_y / distance) * self.speed * dt
+        movement_speed = self.get_movement_speed()
+        move_x = (diff_x / distance) * movement_speed * dt
+        move_y = (diff_y / distance) * movement_speed * dt
 
         self.move_by(move_x, move_y, blockers, entities)
+
+    def get_movement_speed(self):
+        return self.speed
+
+    @property
+    def speed(self):
+        return self._speed * self.puddle_slow_multiplier
+
+    @speed.setter
+    def speed(self, value):
+        self._speed = value
 
     def update_status_effects(self, dt):
         self.update_burn(dt)
@@ -201,7 +230,32 @@ class Enemy(LivingEntity):
             poison["timer"] -= dt
             if poison["timer"] <= 0:
                 poison["timer"] = 0
-                poison["stacks"] = 0
+                if (
+                    getattr(self, "is_boss", False)
+                    and poison["boss_stack_decay_interval"] > 0
+                    and poison["stacks"] > 0
+                ):
+                    poison["is_stack_decay_active"] = True
+                    poison["stack_decay_timer"] = (
+                        poison["boss_stack_decay_interval"]
+                    )
+                else:
+                    poison["stacks"] = 0
+            return
+
+        if not poison["is_stack_decay_active"]:
+            return
+
+        poison["stack_decay_timer"] -= dt
+        if poison["stack_decay_timer"] > 0:
+            return
+
+        poison["stacks"] = max(0, poison["stacks"] - 1)
+        if poison["stacks"] == 0:
+            poison["stack_decay_timer"] = 0
+            poison["is_stack_decay_active"] = False
+        else:
+            poison["stack_decay_timer"] = poison["boss_stack_decay_interval"]
 
     def update_fragile(self, dt):
         fragile = self.status_effects["fragile"]
@@ -209,8 +263,11 @@ class Enemy(LivingEntity):
         if fragile["timer"] > 0:
             fragile["timer"] -= dt
 
-            if fragile["timer"] < 0:
+            if fragile["timer"] <= 0:
                 fragile["timer"] = 0
+                fragile["is_ready_to_execute"] = False
+                fragile["is_sentenced"] = False
+                fragile["sentence_threshold"] = 0
 
     def update(self, player, dt, blockers, entities, room=None):
         self.update_status_effects(dt)
@@ -224,6 +281,17 @@ class Enemy(LivingEntity):
         return []
     
     def take_damage(self, damage):
+        fragile = self.status_effects["fragile"]
+
+        if (
+            damage > 0
+            and fragile["is_sentenced"]
+            and self.health / self.max_health
+            <= fragile["sentence_threshold"]
+        ):
+            self.health = 0
+            self.damage_flash_timer = 0.15
+            return
 
         poison = self.status_effects.get("poison")
 
@@ -283,9 +351,86 @@ class Enemy(LivingEntity):
         rect = sprite.get_rect(center=(int(self.x), int(self.y)))
         surface.blit(sprite, rect)
 
+        self.draw_fragile_mist(surface)
         self.draw_status_marks(surface)
         self.draw_burn_stack_marks(surface)
 
+
+
+    def draw_fragile_mist(self, surface):
+        fragile = self.status_effects["fragile"]
+        health_ratio = self.health / self.max_health
+        has_fragile_mark = (
+            fragile["timer"] > 0
+            and fragile["is_ready_to_execute"]
+            and not fragile["is_sentenced"]
+        )
+        has_sentence_mark = (
+            fragile["timer"] > 0
+            and fragile["is_sentenced"]
+            and health_ratio <= fragile["sentence_threshold"]
+        )
+
+        if not (has_fragile_mark or has_sentence_mark):
+            return
+
+        mist_width = max(
+            8,
+            int(self.radius * 2.1 * FRAGILE_MIST_SIZE_MULTIPLIER),
+        )
+        mist_height = max(
+            6,
+            int(self.radius * 1.25 * FRAGILE_MIST_SIZE_MULTIPLIER),
+        )
+        mist_surface = pygame.Surface(
+            (mist_width, mist_height),
+            pygame.SRCALPHA,
+        )
+        time = pygame.time.get_ticks() / 1000
+
+        for puff_index in range(FRAGILE_MIST_PUFF_COUNT):
+            progress = (
+                time * FRAGILE_MIST_SPEED
+                + puff_index / FRAGILE_MIST_PUFF_COUNT
+            ) % 1
+            puff_width = max(
+                3,
+                int(
+                    self.radius
+                    * (0.55 + progress * 0.25)
+                    * FRAGILE_MIST_SIZE_MULTIPLIER
+                ),
+            )
+            puff_height = max(2, int(puff_width * 0.52))
+            side_direction = -1 if puff_index % 2 == 0 else 1
+            side_drift = side_direction * self.radius * progress * 2
+            side_wobble = math.sin(puff_index * 4.2 + time * 1.4) * self.radius * 0.1
+            puff_x = int(
+                mist_width / 2
+                + side_drift
+                + side_wobble
+                - puff_width / 2
+            )
+            puff_y = int(
+                mist_height
+                - puff_height
+                - progress**1.7 * mist_height * 0.7
+            )
+            alpha = int(FRAGILE_MIST_MAX_ALPHA * (1 - progress))
+
+            pygame.draw.ellipse(
+                mist_surface,
+                (*FRAGILE_MIST_COLOR, alpha),
+                (puff_x, puff_y, puff_width, puff_height),
+            )
+
+        surface.blit(
+            mist_surface,
+            (
+                int(self.x - mist_width / 2),
+                int(self.y + self.radius * 0.45 - mist_height / 2),
+            ),
+        )
 
 
     def draw_status_marks(self, surface):
@@ -298,9 +443,19 @@ class Enemy(LivingEntity):
             marks.append(("poison", (180, 80, 220)))
         
         fragile = self.status_effects["fragile"]
-
-        if fragile["timer"] > 0:
+        health_ratio = self.health / self.max_health
+        if (
+            fragile["timer"] > 0
+            and fragile["is_ready_to_execute"]
+            and not fragile["is_sentenced"]
+        ):
             marks.append(("fragile", (220, 240, 255)))
+
+        if (
+            fragile["is_sentenced"]
+            and health_ratio <= fragile["sentence_threshold"]
+        ):
+            marks.append(("sentenced", (245, 190, 55)))
 
         if not marks:
             return
@@ -315,19 +470,85 @@ class Enemy(LivingEntity):
         for index, (_name, color) in enumerate(marks):
             x = start_x + index * spacing
 
-            pygame.draw.circle(
-                surface,
-                (20, 20, 25),
-                (int(x), int(y)),
-                mark_radius + 1,
-            )
+            if _name == "fragile":
+                self.draw_fragile_mark(surface, x, y, mark_radius)
+            elif _name == "sentenced":
+                self.draw_sentence_mark(surface, x, y, mark_radius)
+            else:
+                pygame.draw.circle(
+                    surface,
+                    (20, 20, 25),
+                    (int(x), int(y)),
+                    mark_radius + 1,
+                )
 
-            pygame.draw.circle(
-                surface,
-                color,
-                (int(x), int(y)),
-                mark_radius,
-            )
+                pygame.draw.circle(
+                    surface,
+                    color,
+                    (int(x), int(y)),
+                    mark_radius,
+                )
+
+    def draw_fragile_mark(self, surface, x, y, radius):
+        outer_points = [
+            (int(x), int(y - radius - 1)),
+            (int(x + radius + 1), int(y)),
+            (int(x), int(y + radius + 1)),
+            (int(x - radius - 1), int(y)),
+        ]
+        inner_points = [
+            (int(x), int(y - radius)),
+            (int(x + radius), int(y)),
+            (int(x), int(y + radius)),
+            (int(x - radius), int(y)),
+        ]
+
+        pygame.draw.polygon(surface, (25, 35, 55), outer_points)
+        pygame.draw.polygon(surface, (190, 235, 255), inner_points)
+        pygame.draw.line(
+            surface,
+            (255, 255, 255),
+            (int(x), int(y - radius + 1)),
+            (int(x), int(y + radius - 1)),
+            1,
+        )
+
+    def draw_sentence_mark(self, surface, x, y, radius):
+        pygame.draw.circle(
+            surface,
+            (35, 20, 25),
+            (int(x), int(y)),
+            radius + 1,
+        )
+
+        pygame.draw.line(
+            surface,
+            (120, 30, 35),
+            (int(x - radius), int(y - radius)),
+            (int(x + radius), int(y + radius)),
+            3,
+        )
+        pygame.draw.line(
+            surface,
+            (120, 30, 35),
+            (int(x + radius), int(y - radius)),
+            (int(x - radius), int(y + radius)),
+            3,
+        )
+        pygame.draw.line(
+            surface,
+            (255, 205, 65),
+            (int(x - radius), int(y - radius)),
+            (int(x + radius), int(y + radius)),
+            1,
+        )
+        pygame.draw.line(
+            surface,
+            (255, 205, 65),
+            (int(x + radius), int(y - radius)),
+            (int(x - radius), int(y + radius)),
+            1,
+        )
 
     def draw_burn_stack_marks(self, surface):
         burn = self.status_effects["burn"]

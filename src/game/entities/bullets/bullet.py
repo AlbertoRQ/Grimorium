@@ -24,6 +24,7 @@ class Bullet(Entity):
         effect_data=None,
         world_width=None,
         world_height=None,
+        fragment_style=None,
     ):
         super().__init__(x, y, radius, color)
         self.vel_x = vel_x
@@ -42,12 +43,14 @@ class Bullet(Entity):
 
         self.hit_wall = False
         self.can_fragment = True
+        self.can_refragment = False
         self.fragment_direction = None
 
         self.impact_x = None
         self.impact_y = None
 
         self.visual_timer = 0
+        self.fragment_style = fragment_style
 
     def update(self, dt, blockers):
         old_x = self.x
@@ -111,6 +114,10 @@ class Bullet(Entity):
         )
     
     def draw(self, surface):
+        if self.fragment_style == "thermal_stalactite":
+            self.draw_thermal_stalactite(surface)
+            return
+
         if "ice" in self.elements:
             pygame.draw.circle(surface, (120, 200, 255), (int(self.x), int(self.y)), self.radius + 4)
 
@@ -121,6 +128,41 @@ class Bullet(Entity):
             self.draw_electric_sparks(surface)
 
         pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
+
+    def draw_thermal_stalactite(self, surface):
+        direction = pygame.Vector2(self.vel_x, self.vel_y)
+
+        if direction.length_squared() <= 0:
+            return
+
+        direction = direction.normalize()
+        perpendicular = pygame.Vector2(-direction.y, direction.x)
+        center = pygame.Vector2(self.x, self.y)
+
+        tip = center + direction * (self.radius + 6)
+        back = center - direction * (self.radius + 3)
+        outer_points = [
+            tip,
+            back + perpendicular * (self.radius + 2),
+            back - perpendicular * (self.radius + 2),
+        ]
+
+        inner_tip = center + direction * (self.radius + 3)
+        inner_back = center - direction * self.radius
+        inner_points = [
+            inner_tip,
+            inner_back + perpendicular * self.radius,
+            inner_back - perpendicular * self.radius,
+        ]
+
+        pygame.draw.polygon(surface, (110, 210, 255), outer_points)
+        pygame.draw.polygon(surface, (235, 245, 255), inner_points)
+        pygame.draw.circle(
+            surface,
+            (255, 137, 69),
+            (int(self.x), int(self.y)),
+            max(1, self.radius - 1),
+        )
 
         
 
@@ -259,23 +301,33 @@ def create_spread_shot(x, y, vel_x, vel_y, max_dist, elements, effect_data):
 
     return bullets, bullets[0].rate
 
-def create_fragment(x, y, vel_x, vel_y, max_distance, damage):
+def create_fragment(
+    x,
+    y,
+    vel_x,
+    vel_y,
+    max_distance,
+    damage,
+    elements=None,
+    effect_data=None,
+    color=(235, 214, 75),
+    fragment_style=None,
+):
     fragment = Bullet(
         x=x,
         y=y,
         vel_x=vel_x,
         vel_y=vel_y,
-        color=(235, 214, 75),
+        color=color,
         radius=BULLET_TYPES["fragment"]["radius"],
         damage=damage,
         rate=1,
         max_distance=max_distance,
-        elements=[],
-        effect_data={},
+        elements=elements or [],
+        effect_data=effect_data or {},
+        fragment_style=fragment_style,
     )
 
     fragment.can_fragment = False
 
     return fragment
-
-

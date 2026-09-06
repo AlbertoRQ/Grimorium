@@ -58,12 +58,14 @@ class ChaserEnemy(Enemy):
         if distance <= 0:
             return
 
+        movement_speed = self.get_movement_speed()
+
         if distance <= self.detection_distance and not player.invulnerability_timer > 0:
             if room is not None:
                 move_x, move_y = self.get_path_movement(player, dt, room, blockers)
             else:
-                move_x = (diff_x / distance) * self.speed * dt
-                move_y = (diff_y / distance) * self.speed * dt
+                move_x = (diff_x / distance) * movement_speed * dt
+                move_y = (diff_y / distance) * movement_speed * dt
         else:
             self.random_move_timer -= dt
 
@@ -71,8 +73,8 @@ class ChaserEnemy(Enemy):
                 self.choose_random_direction()
                 self.random_move_timer = self.random_move_interval
 
-            move_x = self.random_dir_x * self.speed * dt
-            move_y = self.random_dir_y * self.speed * dt
+            move_x = self.random_dir_x * movement_speed * dt
+            move_y = self.random_dir_y * movement_speed * dt
 
         old_x = self.x
         old_y = self.y
@@ -153,6 +155,6 @@ class ChaserEnemy(Enemy):
             return 0, 0
 
         return (
-            (diff_x / length) * self.speed * dt,
-            (diff_y / length) * self.speed * dt,
+            (diff_x / length) * self.get_movement_speed() * dt,
+            (diff_y / length) * self.get_movement_speed() * dt,
         )

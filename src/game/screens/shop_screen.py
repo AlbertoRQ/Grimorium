@@ -13,6 +13,7 @@ PLUS_BORDER_STYLE = "pulse"
 PLUS_BORDER_PULSE_STEP_MS = 110
 PLUS_BORDER_SWEEP_STEP_MS = 30
 PLUS_BORDER_SWEEP_COOLDOWN_MS = 1200
+PLUS_TEXT_SHINE_DURATION_MS = 1800
 PLUS_BORDER_GOLD_COLORS = [
     (170, 92, 12), (175, 96, 13), (180, 101, 14),
     (186, 107, 16), (192, 114, 18), (199, 121, 20),
@@ -726,14 +727,17 @@ class ShopScreen(BaseScreen):
             **stats,
         }
 
-        if level_id == "fire":
-            data["has_accumulated_combustion"] = (
-                "fire_plus" in self.player.purchased_books
-            )
+        data["has_plus_book"] = (
+            f"{level_id}_plus" in self.player.purchased_books
+        )
 
         if level_id == "ice":
             data["slow_percent"] = round(
                 (1 - stats["slow_multiplier"]) * 100
+            )
+            data["frost_wave_duration"] = round(
+                stats["frost_wave_duration"],
+                2,
             )
 
         elif level_id == "electric":
@@ -760,9 +764,11 @@ class ShopScreen(BaseScreen):
             )
 
         elif level_id == "electric_poison":
-            data["drain_per_second"] = round(
-                stats["drain_per_second"],
-                2,
+            drain_per_second = stats["drain_per_second"]
+            data["overload_total_duration"] = (
+                f"{1 / drain_per_second:.2f}"
+                if drain_per_second > 0
+                else "∞"
             )
             data["tick_damage"] = round(
                 stats["tick_damage"],
@@ -803,7 +809,17 @@ class ShopScreen(BaseScreen):
 
 
     def wrap_text(self, text, max_width):
-        words = text.split()
+        words = []
+
+        for part in re.split(r"(\[plus\].*?\[/plus\])", text):
+            if not part:
+                continue
+
+            if part.startswith("[plus]") and part.endswith("[/plus]"):
+                words.append(part)
+            else:
+                words.extend(part.split())
+
         lines = []
         current = ""
 
@@ -823,8 +839,14 @@ class ShopScreen(BaseScreen):
         return lines
     
 
-    def format_tooltip_line(self, line, format_data):
+    def format_tooltip_line(self, line, format_data, effect_units=None):
+        effect_units = effect_units or {}
         for key, value in format_data.items():
+            if effect_units.get(key) == "ratio" and isinstance(value, (int, float)):
+                line = line.replace(
+                    f"{{good_percent:{key}}}",
+                    f"[good]{value * 100:.1f}[/good]",
+                )
             line = line.replace(f"{{good:{key}}}", f"[good]{value}[/good]")
             line = line.replace(f"{{bad:{key}}}", f"[bad]{value}[/bad]")
 
@@ -836,10 +858,9 @@ class ShopScreen(BaseScreen):
 
         if (
             item_type == "level"
-            and item_id == "fire"
-            and item_data.get("has_accumulated_combustion", False)
+            and item_data.get("has_plus_book", False)
         ):
-            detail_key = "item.level.fire.plus_detail"
+            detail_key = f"item.level.{item_id}.plus_detail"
 
         detail_lines = list(
             self.game.localization.text(detail_key, [])
@@ -879,26 +900,42 @@ class ShopScreen(BaseScreen):
                     format_data["damage_multiplier"] * 100
                 )
 
-            elif item_id == "ice_poison":
-                format_data["execute_stack_percent"] = round(
-                    format_data["execute_threshold_per_stack"] * 100
-                )
-
             elif item_id == "electric_poison":
-                format_data["drain_per_second_abs"] = round(
-                    abs(format_data["drain_per_second"]),
-                    2,
+                current_drain = self.player.combo_stats["electric_poison"][
+                    "drain_per_second"
+                ]
+                new_drain = current_drain + format_data["drain_per_second"]
+                current_duration = 1 / current_drain
+                new_duration = 1 / new_drain if new_drain > 0 else float("inf")
+                format_data["overload_total_duration"] = (
+                    f"{new_duration:.2f}"
+                    if new_duration != float("inf")
+                    else "∞"
+                )
+                format_data["overload_duration_added"] = (
+                    f"{new_duration - current_duration:.2f}"
+                    if new_duration != float("inf")
+                    else "∞"
                 )
                 format_data["tick_damage"] = round(
                     format_data["tick_damage"],
                     2,
                 )
 
+            elif item_id == "ice_electric_plus":
+                format_data["electrified_slow_percent"] = round(
+                    abs(format_data["electrified_slow_multiplier"]) * 100
+                )
+
         if "chance" in format_data:
             format_data["chance_percent"] = f"{int(format_data['chance'] * 100)}%"
 
         return [
-            self.format_tooltip_line(line, format_data)
+            self.format_tooltip_line(
+                line,
+                format_data,
+                item_data.get("effect_units"),
+            )
             for line in detail_lines
         ]
         
@@ -927,8 +964,7 @@ class ShopScreen(BaseScreen):
 
             if (
                 item_type == "level"
-                and item_id == "fire"
-                and item_data.get("has_accumulated_combustion", False)
+                and item_data.get("has_plus_book", False)
             ):
                 short_key = f"{text_key}.plus_short"
 
@@ -937,7 +973,7 @@ class ShopScreen(BaseScreen):
 
             description = description.format(**item_data)
 
-            body_lines = [description]
+            body_lines = description.splitlines()
 
         hint = ""
 
@@ -994,6 +1030,56 @@ class ShopScreen(BaseScreen):
             self.render_tooltip_rich_line(line, style, item_type, item_id)
             for line in wrapped_body_lines
         ]
+
+        plus_line_indexes = [
+            index
+            for index, line in enumerate(wrapped_body_lines)
+            if "[plus]" in line
+        ]
+
+        if plus_line_indexes:
+            first_plus_line = plus_line_indexes[0]
+            last_plus_line = plus_line_indexes[-1]
+            plus_block_width = max(
+                body_surfaces[index].get_width()
+                for index in range(first_plus_line, last_plus_line + 1)
+            )
+            plus_block_height = sum(
+                body_surfaces[index].get_height()
+                for index in range(first_plus_line, last_plus_line + 1)
+            )
+            plus_block_height += (
+                last_plus_line - first_plus_line
+            ) * body_line_gap
+
+            plus_line_y = 0
+            synchronized_body_surfaces = []
+            for index, line in enumerate(wrapped_body_lines):
+                shine_context = None
+                if first_plus_line <= index <= last_plus_line:
+                    shine_context = (
+                        plus_block_width,
+                        plus_block_height,
+                        plus_line_y,
+                    )
+
+                synchronized_body_surfaces.append(
+                    self.render_tooltip_rich_line(
+                        line,
+                        style,
+                        item_type,
+                        item_id,
+                        shine_context,
+                    )
+                )
+
+                if first_plus_line <= index <= last_plus_line:
+                    plus_line_y += (
+                        body_surfaces[index].get_height()
+                        + body_line_gap
+                    )
+
+            body_surfaces = synchronized_body_surfaces
 
         hint_surfaces = []
         if hint:
@@ -1143,7 +1229,7 @@ class ShopScreen(BaseScreen):
                 current_y += body_line_gap
 
 
-    def render_plus_tooltip_text(self, text):
+    def render_plus_tooltip_text(self, text, shine_context=None):
         animation_frame = (
             pygame.time.get_ticks()
             // PLUS_BORDER_PULSE_STEP_MS
@@ -1159,14 +1245,15 @@ class ShopScreen(BaseScreen):
         )
 
         shine_width = 4 * self.pixel_scale
-        sweep_duration = (
-            (
-                  text_surface.get_width()
-                  + text_surface.get_height()
-                + shine_width
-            )
-            * PLUS_BORDER_SWEEP_STEP_MS
-        )
+        if shine_context:
+            block_width, block_height, line_y = shine_context
+        else:
+            block_width = text_surface.get_width()
+            block_height = text_surface.get_height()
+            line_y = 0
+
+        sweep_distance = block_width + block_height + shine_width
+        sweep_duration = PLUS_TEXT_SHINE_DURATION_MS
         full_cycle_duration = (
             sweep_duration + PLUS_BORDER_SWEEP_COOLDOWN_MS
         )
@@ -1175,8 +1262,8 @@ class ShopScreen(BaseScreen):
         if cycle_time >= sweep_duration:
             return text_surface
 
-        diagonal_position = (
-            cycle_time // PLUS_BORDER_SWEEP_STEP_MS
+        diagonal_position = int(
+            (cycle_time / sweep_duration) * sweep_distance
         ) - shine_width
 
         for index, shine_color in enumerate(PLUS_BORDER_SWEEP_COLORS):
@@ -1190,7 +1277,9 @@ class ShopScreen(BaseScreen):
                 pygame.SRCALPHA,
             )
             trail_position = (
-                diagonal_position - index * self.pixel_scale
+                diagonal_position
+                - line_y
+                - index * self.pixel_scale
             )
 
             pygame.draw.line(
@@ -1214,7 +1303,14 @@ class ShopScreen(BaseScreen):
         return text_surface
 
 
-    def render_tooltip_rich_line(self, text, style, item_type, item_id):
+    def render_tooltip_rich_line(
+        self,
+        text,
+        style,
+        item_type,
+        item_id,
+        shine_context=None,
+    ):
         normal_color = style["text"]
         positive_color = style.get("positive", (35, 90, 45))
         negative_color = style.get("negative", (120, 35, 35))
@@ -1254,7 +1350,7 @@ class ShopScreen(BaseScreen):
                     color = positive_color
 
             part_surface = (
-                self.render_plus_tooltip_text(part)
+                self.render_plus_tooltip_text(part, shine_context)
                 if is_plus_text
                 else self.tooltip_font.render(part, True, color)
             )

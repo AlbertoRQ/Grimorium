@@ -3,7 +3,13 @@ from game.entities.bullets.bullet import create_fragment
 
 
 class VoltaicFragmentation:
-    def __init__(self, bullet, original_damage):
+    def __init__(
+        self,
+        bullet,
+        original_damage,
+        can_refragment=False,
+        is_refragmentation=False,
+    ):
         combo_data = bullet.effect_data["combos"]["fire_electric"]
 
         impact_push = 10
@@ -23,6 +29,8 @@ class VoltaicFragmentation:
         self.bullet_radius = bullet.radius
 
         self.combo_data = combo_data
+        self.can_refragment = can_refragment
+        self.is_refragmentation = is_refragmentation
 
         self.timer = 0
         self.duration = combo_data["embed_duration"]
@@ -87,6 +95,14 @@ class VoltaicFragmentation:
 
     def create_fragments(self):
         fragment_count = self.combo_data["fragment_count"]
+        refragment_divisor = self.combo_data["refragment_divisor"]
+
+        if self.is_refragmentation:
+            fragment_count = max(
+                1,
+                fragment_count // refragment_divisor,
+            )
+
         spread_angle = self.combo_data["spread_angle"]
         fragment_range = self.combo_data["fragment_range"]
         damage_multiplier = self.combo_data["damage_multiplier"]
@@ -123,7 +139,9 @@ class VoltaicFragmentation:
                 vel_y=direction.y * fragment_speed,
                 max_distance=fragment_range,
                 damage=fragment_damage,
+                effect_data={"combos": {"fire_electric": self.combo_data}},
             )
+            fragment.can_refragment = self.can_refragment
 
             fragments.append(fragment)
 

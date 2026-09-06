@@ -1,4 +1,5 @@
 import math
+import random
 import pygame
 
 
@@ -75,29 +76,28 @@ class ToxicOverload:
 
         center = (int(self.player.x), int(self.player.y))
 
+        field_width = self.radius * 2
+        field_height = int(self.radius * 1.6)
         field_surface = pygame.Surface(
-            (self.radius * 2, self.radius * 2),
+            (field_width, field_height),
             pygame.SRCALPHA,
         )
+        field_rect = (0, 0, field_width, field_height)
 
-        pygame.draw.circle(
-            field_surface,
-            (110, 220, 70, 55),
-            (self.radius, self.radius),
-            self.radius,
-        )
+        # La elipse da al campo una sensación de cúpula sobre el suelo.
+        pygame.draw.ellipse(field_surface, (205, 145, 230, 80), field_rect)
+        self.draw_electric_sparks(field_surface)
 
-        pygame.draw.circle(
+        pygame.draw.ellipse(
             field_surface,
-            (225, 255, 70, 180),
-            (self.radius, self.radius),
-            self.radius,
+            (255, 220, 70, 185),
+            field_rect,
             2,
         )
 
         surface.blit(
             field_surface,
-            (center[0] - self.radius, center[1] - self.radius),
+            (center[0] - self.radius, center[1] - field_height // 2),
         )
 
         bar_width = 34
@@ -113,7 +113,7 @@ class ToxicOverload:
 
         pygame.draw.rect(
             surface,
-            (130, 240, 70),
+            (190, 120, 220),
             (
                 bar_x,
                 bar_y,
@@ -124,7 +124,43 @@ class ToxicOverload:
 
         pygame.draw.rect(
             surface,
-            (245, 255, 170),
+            (255, 235, 135),
             (bar_x, bar_y, bar_width, bar_height),
             1,
         )
+
+    def draw_electric_sparks(self, field_surface):
+        frame = pygame.time.get_ticks() // 65
+        rng = random.Random(frame)
+        center = pygame.Vector2(
+            field_surface.get_width() / 2,
+            field_surface.get_height() / 2,
+        )
+        radius_x = field_surface.get_width() / 2
+        radius_y = field_surface.get_height() / 2
+
+        for _ in range(4):
+            bolt_angle = rng.uniform(0, math.tau)
+            start_distance = rng.uniform(1, self.radius * 0.08)
+            start = pygame.Vector2(
+                center.x + math.cos(bolt_angle) * start_distance,
+                center.y + math.sin(bolt_angle) * start_distance,
+            )
+
+            edge_distance = rng.uniform(0.58, 0.9)
+            end = pygame.Vector2(
+                center.x + math.cos(bolt_angle) * radius_x * edge_distance,
+                center.y + math.sin(bolt_angle) * radius_y * edge_distance,
+            )
+
+            direction = end - start
+            normal = pygame.Vector2(-direction.y, direction.x).normalize()
+            middle = start.lerp(end, 0.5) + normal * rng.uniform(-4, 4)
+            points = [
+                (int(start.x), int(start.y)),
+                (int(middle.x), int(middle.y)),
+                (int(end.x), int(end.y)),
+            ]
+
+            pygame.draw.lines(field_surface, (255, 210, 55, 195), False, points, 2)
+            pygame.draw.lines(field_surface, (255, 250, 190, 230), False, points, 1)

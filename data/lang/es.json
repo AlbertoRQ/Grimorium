@@ -9,13 +9,28 @@
         "name": "Libro eléctrico",
         "short": "Mejora los saltos eléctricos entre enemigos"
       },
+      "electric_plus": {
+        "detail": [
+          "+{good:second_discharge_chains} segunda descarga al terminar la cadena"
+        ],
+        "name": "Electricidad +: Segunda descarga",
+        "short": "Al terminar una cadena libera una segunda descarga"
+      },
       "electric_poison": {
         "detail": [
-            "-{good:drain_per_second_abs} de descarga por segundo",
+          "+{good:overload_duration_added}s de duración",
           "+{good:tick_damage} de daño por tick"
         ],
         "name": "Libro de Sobrecarga Tóxica",
         "short": "Prolonga la Sobrecarga y aumenta el daño de su campo"
+      },
+      "electric_poison_plus": {
+        "detail": [
+          "Duración del rastro: {good:trail_duration}s",
+          "Veneno por tick: {good:trail_stacks_per_tick} acumulación"
+        ],
+        "name": "Electricidad y veneno +: Rastro tóxico",
+        "short": "Sobrecarga Tóxica deja un rastro de veneno"
       },
       "fire": {
         "detail": [
@@ -40,12 +55,26 @@
         "name": "Libro de chispas ígneas",
         "short": "Mejora los fragmentos creados por fuego y electricidad"
       },
+      "fire_electric_plus": {
+        "detail": [
+          "Los nuevos fragmentos son la mitad"
+        ],
+        "name": "Fuego y electricidad +: Refragmentación",
+        "short": "Los fragmentos pueden volver a fragmentarse al golpear una pared"
+      },
       "fire_ice": {
         "detail": [
           "+{damage_multiplier} daño al romper el hielo"
         ],
         "name": "Libro de choque térmico",
         "short": "Aumenta el daño al romper el hielo"
+      },
+      "fire_ice_plus": {
+        "detail": [
+          "+{good:thermal_fragment_count} fragmentos radiales"
+        ],
+        "name": "Fuego y hielo +: Fragmentación térmica",
+        "short": "Al romper el hielo crea fragmentos de fuego y hielo"
       },
       "fire_poison": {
         "detail": [
@@ -55,6 +84,14 @@
         "name": "Libro de nube corrosiva",
         "short": "Mejora la nube creada por fuego y veneno"
       },
+      "fire_poison_plus": {
+        "detail": [
+          "El fuego incendia la nube",
+          "La nube deja caer lluvia de lava"
+        ],
+        "name": "Fuego y veneno +: Nube incendiada",
+        "short": "El fuego puede incendiar las nubes venenosas"
+      },
       "ice": {
         "detail": [
           "+{slow_duration}s de ralentización",
@@ -63,6 +100,14 @@
         ],
         "name": "Libro de hielo",
         "short": "Mejora la ralentización y la congelación"
+      },
+      "ice_plus": {
+        "detail": [
+          "+{good:frost_wave_radius} radio de onda",
+          "+{good:frost_wave_duration}s duración de onda"
+        ],
+        "name": "Hielo +: Onda de escarcha",
+        "short": "Al congelar, libera una onda que ralentiza a los enemigos cercanos"
       },
       "ice_electric": {
         "detail": [
@@ -74,13 +119,27 @@
         "name": "Libro de tormenta helada",
         "short": "Mejora el charco electrificado"
       },
+      "ice_electric_plus": {
+        "detail": [
+          "Ralentización: {good:electrified_slow_percent}%"
+        ],
+        "name": "Hielo y electricidad +: Conducción glacial",
+        "short": "Los charcos electrificados ralentizan a los enemigos"
+      },
       "ice_poison": {
         "detail": [
-          "+{execute_threshold_per_stack} ejecución por stack",
+          "+{good_percent:execute_threshold_per_stack}% ejecución por stack",
           "+{fragile_duration}s de Marca Frágil"
         ],
         "name": "Libro de fragilidad tóxica",
         "short": "Mejora la ejecución contra enemigos frágiles"
+      },
+      "ice_poison_plus": {
+        "detail": [
+          "Cualquier daño puede ejecutar a los Sentenciados"
+        ],
+        "name": "Hielo y veneno +: Sentencia",
+        "short": "El veneno máximo sentencia a los enemigos frágiles"
       },
       "poison": {
         "detail": [
@@ -89,6 +148,13 @@
         ],
         "name": "Libro de veneno",
         "short": "Aumenta el daño acumulado del veneno"
+      },
+      "poison_plus": {
+        "detail": [
+          "Pérdida de stacks: {good:boss_stack_decay_interval}s"
+        ],
+        "name": "Veneno +: Toxicidad persistente",
+        "short": "En jefes los stacks de veneno se pierden uno a uno"
       }
     },
     "level": {
@@ -99,7 +165,13 @@
           "Distancia de salto: {good:max_jump_distance}"
         ],
         "name": "Electricidad - Nivel {level}",
-        "short": "Encadena parte del daño a enemigos cercanos."
+        "short": "Encadena parte del daño a enemigos cercanos",
+        "plus_short": "Encadena parte del daño a enemigos cercanos\n[plus]Libera una segunda descarga[/plus]",
+        "plus_detail": [
+          "Daño de la cadena: {good:chain_damage_percent}%",
+          "Saltos máximos: {good:max_targets}",
+          "Distancia de salto: {good:max_jump_distance}"
+        ]
       },
       "fire": {
         "detail": [
@@ -108,8 +180,8 @@
           "Intervalo: {good:burn_tick_timer}s"
         ],
         "name": "Fuego - Nivel {level}",
-        "short": "Quema a los enemigos alcanzados.",
-        "plus_short": "Quema a los enemigos alcanzados. [plus]Max: {max_burn_stacks} acumulaciones[/plus]",
+        "short": "Quema al impactar",
+        "plus_short": "Quema al impactar\n[plus]Máx: {max_burn_stacks} acumulaciones[/plus]",
         "plus_detail": [
           "Daño por tick: {good:burn_damage}",
           "Duración: {good:burn_duration}s"
@@ -124,14 +196,26 @@
           "Ángulo de dispersión: {good:spread_angle}°"
         ],
         "name": "Chispas ígneas - Nivel {level}",
-        "short": "Los proyectiles incrustados estallan en fragmentos."
+        "short": "Los proyectiles incrustados estallan en fragmentos",
+        "plus_short": "Los proyectiles incrustados estallan en fragmentos\n[plus]Los fragmentos pueden refragmentarse[/plus]",
+        "plus_detail": [
+          "Fragmentos: {good:fragment_count}",
+          "Daño por fragmento: {good:fragment_damage_percent}%",
+          "Alcance: {good:fragment_range}",
+          "Tiempo hasta estallar: {good:embed_duration}s",
+          "Ángulo de dispersión: {good:spread_angle}°"
+        ]
       },
       "fire_ice": {
         "detail": [
           "Multiplicador adicional: x{good:damage_multiplier}"
         ],
         "name": "Choque térmico - Nivel {level}",
-        "short": "Romper la congelación inflige daño adicional."
+        "short": "Romper la congelación inflige daño adicional",
+        "plus_short": "Romper la congelación inflige daño adicional\n[plus]Libera {thermal_fragment_count} fragmentos de fuego y hielo[/plus]",
+        "plus_detail": [
+          "Multiplicador adicional: x{good:damage_multiplier}"
+        ]
       },
       "fire_poison": {
         "detail": [
@@ -141,7 +225,14 @@
           "Veneno por tick: {good:stacks_per_tick}"
         ],
         "name": "Nube corrosiva - Nivel {level}",
-        "short": "Los enemigos quemados liberan una nube venenosa."
+        "short": "Los enemigos quemados liberan una nube venenosa",
+        "plus_short": "Los enemigos quemados liberan una nube venenosa\n[plus]El fuego incendia la nube[/plus]",
+        "plus_detail": [
+          "Radio de la nube: {good:cloud_radius}",
+          "Duración: {good:cloud_duration}s",
+          "Intervalo: {good:tick_time}s",
+          "Veneno por tick: {good:stacks_per_tick}"
+        ]
       },
       "ice": {
         "detail": [
@@ -152,7 +243,15 @@
           "Recarga de congelación: {good:ice_cooldown}s"
         ],
         "name": "Hielo - Nivel {level}",
-        "short": "Ralentiza y congela al acumular impactos."
+        "short": "Ralentiza y congela al acumular impactos",
+        "plus_short": "Ralentiza y congela\n[plus]Los enemigos congelados[/plus]\n[plus]ralentizan a los cercanos[/plus]",
+        "plus_detail": [
+          "Ralentización: {good:slow_percent}%",
+          "Duración de ralentización: {good:slow_duration}s",
+          "Impactos para congelar: {good:max_ice_stacks}",
+          "Duración de congelación: {good:ice_duration}s",
+          "Recarga de congelación: {good:ice_cooldown}s"
+        ]
       },
       "ice_electric": {
         "detail": [
@@ -162,7 +261,14 @@
           "Daño por tick: {good:tick_damage}"
         ],
         "name": "Tormenta helada - Nivel {level}",
-        "short": "La congelación crea un charco electrificado."
+        "short": "La congelación crea un charco electrificado",
+        "plus_short": "La congelación crea un charco electrificado\n[plus]Los charcos electrificados ralentizan[/plus]",
+        "plus_detail": [
+          "Tamaño del charco: x{good:puddle_size_multiplier}",
+          "Duración adicional: {good:puddle_duration_bonus}s",
+          "Tiempo electrificado: {good:electric_duration}s",
+          "Daño por tick: {good:tick_damage}"
+        ]
       },
       "ice_poison": {
         "detail": [
@@ -171,7 +277,13 @@
           "Ejecución por acumulación: {good:execute_stack_percent}%"
         ],
         "name": "Fragilidad tóxica - Nivel {level}",
-        "short": "El veneno puede ejecutar enemigos congelados."
+        "short": "El veneno puede ejecutar enemigos congelados",
+        "plus_short": "El veneno puede ejecutar enemigos congelados\n[plus]El veneno máximo sentencia a los frágiles[/plus]",
+        "plus_detail": [
+          "Duración de fragilidad: {good:fragile_duration}s",
+          "Ejecución base: {good:execute_base_percent}%",
+          "Ejecución por acumulación: {good:execute_stack_percent}%"
+        ]
       },
       "poison": {
         "detail": [
@@ -180,17 +292,30 @@
           "Duración contra jefes: {good:boss_duration}s"
         ],
         "name": "Veneno - Nivel {level}",
-        "short": "Acumula veneno y aumenta el daño recibido."
+        "short": "Acumula veneno y aumenta el daño recibido",
+        "plus_short": "Acumula veneno y aumenta el daño recibido\n[plus]En jefes los stacks se pierden uno a uno[/plus]",
+        "plus_detail": [
+          "Acumulaciones máximas: {good:max_stacks}",
+          "Daño recibido por acumulación: {good:damage_received_percent}%",
+          "Duración contra jefes: {good:boss_duration}s"
+        ]
       },
       "electric_poison": {
         "detail": [
           "Radio del campo: {good:radius}",
-          "Descarga: {good:drain_per_second}/s",
+          "Duración: {good:overload_total_duration}s",
           "Daño por tick: {good:tick_damage}",
           "Velocidad: x{good:speed_multiplier}"
         ],
         "name": "Sobrecarga Tóxica - Nivel {level}",
-        "short": "Un campo tóxico eléctrico que se alimenta de enemigos."
+        "short": "Un campo tóxico eléctrico que se alimenta de enemigos",
+        "plus_short": "Un campo tóxico eléctrico que se alimenta de enemigos\n[plus]Deja un rastro de veneno[/plus]",
+        "plus_detail": [
+          "Radio del campo: {good:radius}",
+          "Duración: {good:overload_total_duration}s",
+          "Daño por tick: {good:tick_damage}",
+          "Velocidad: x{good:speed_multiplier}"
+        ]
       }
     },
     "potion": {
@@ -250,7 +375,7 @@
           "Tamaño: x{good:radius_multiplier}"
         ],
         "name": "Balas grandes",
-        "short": "Aumenta el tamaño de los proyectiles."
+        "short": "Aumenta el tamaño de los proyectiles"
       },
       "double_shot": {
         "detail": [
@@ -258,7 +383,7 @@
           "Separación: {good:parallel_spacing}"
         ],
         "name": "Disparo doble",
-        "short": "Dispara dos proyectiles paralelos."
+        "short": "Dispara dos proyectiles paralelos"
       },
       "electric": {
         "detail": [
@@ -293,7 +418,7 @@
           "Disparo posterior: {good:rear_shot}"
         ],
         "name": "Disparo trasero",
-        "short": "Repite la descarga completa hacia atrás."
+        "short": "Repite la descarga completa hacia atrás"
       },
       "triple_shot": {
         "detail": [
@@ -301,7 +426,7 @@
           "Ángulo: {good:fan_angle}°"
         ],
         "name": "Disparo triple",
-        "short": "Dispara tres proyectiles en abanico."
+        "short": "Dispara tres proyectiles en abanico"
       }
     }
   },

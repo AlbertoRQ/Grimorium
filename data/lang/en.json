@@ -9,13 +9,28 @@
         "name": "Electric Book",
         "short": "Improves electric jumps between enemies"
       },
+      "electric_plus": {
+        "detail": [
+          "+{good:second_discharge_chains} second discharge when the chain ends"
+        ],
+        "name": "Electricity +: Second Discharge",
+        "short": "Finishing a chain releases a second discharge"
+      },
       "electric_poison": {
         "detail": [
-          "-{good:drain_per_second_abs} drain per second",
+          "+{good:overload_duration_added}s duration",
           "+{good:tick_damage} damage per tick"
         ],
         "name": "Toxic Overload Book",
         "short": "Extends Toxic Overload and increases its field damage"
+      },
+      "electric_poison_plus": {
+        "detail": [
+          "Trail duration: {good:trail_duration}s",
+          "Poison per tick: {good:trail_stacks_per_tick} stack"
+        ],
+        "name": "Electricity and Poison +: Toxic Trail",
+        "short": "Toxic Overload leaves a poison trail"
       },
       "fire": {
         "detail": [
@@ -40,12 +55,26 @@
         "name": "Ignited Sparks Book",
         "short": "Improves fragments created by fire and electricity"
       },
+      "fire_electric_plus": {
+        "detail": [
+          "New fragments are half as many"
+        ],
+        "name": "Fire and Electricity +: Refragmentation",
+        "short": "Fragments can fragment again when hitting a wall"
+      },
       "fire_ice": {
         "detail": [
           "Additional multiplier: +x{good:damage_multiplier}"
         ],
         "name": "Thermal Shock Book",
         "short": "Increases damage when breaking ice"
+      },
+      "fire_ice_plus": {
+        "detail": [
+          "+{good:thermal_fragment_count} radial fragments"
+        ],
+        "name": "Fire and Ice +: Thermal Fragmentation",
+        "short": "Breaking ice creates fire and ice fragments"
       },
       "fire_poison": {
         "detail": [
@@ -55,6 +84,14 @@
         "name": "Corrosive Cloud Book",
         "short": "Improves the cloud created by fire and poison"
       },
+      "fire_poison_plus": {
+        "detail": [
+          "Fire ignites the cloud",
+          "The cloud releases lava rain"
+        ],
+        "name": "Fire and Poison +: Ignited Cloud",
+        "short": "Fire can ignite poison clouds"
+      },
       "ice": {
         "detail": [
           "Slow: +{good:slow_percent}%",
@@ -63,6 +100,14 @@
         ],
         "name": "Ice Book",
         "short": "Improves slowing and freezing"
+      },
+      "ice_plus": {
+        "detail": [
+          "+{good:frost_wave_radius} wave radius",
+          "+{good:frost_wave_duration}s wave duration"
+        ],
+        "name": "Ice +: Frost Wave",
+        "short": "Freezing releases a wave that slows nearby enemies"
       },
       "ice_electric": {
         "detail": [
@@ -74,13 +119,27 @@
         "name": "Frozen Storm Book",
         "short": "Improves the electrified puddle"
       },
+      "ice_electric_plus": {
+        "detail": [
+          "Slow: {good:electrified_slow_percent}%"
+        ],
+        "name": "Ice and Electricity +: Glacial Conduction",
+        "short": "Electrified puddles slow enemies"
+      },
       "ice_poison": {
         "detail": [
           "Fragility duration: +{good:fragile_duration}s",
-          "Execution threshold per stack: +{good:execute_stack_percent}%"
+          "Execution threshold per stack: +{good_percent:execute_threshold_per_stack}%"
         ],
         "name": "Toxic Fragility Book",
         "short": "Improves execution against fragile enemies"
+      },
+      "ice_poison_plus": {
+        "detail": [
+          "Any damage can execute Sentenced enemies"
+        ],
+        "name": "Ice and Poison +: Sentence",
+        "short": "Maximum poison sentences fragile enemies"
       },
       "poison": {
         "detail": [
@@ -89,6 +148,13 @@
         ],
         "name": "Poison Book",
         "short": "Increases stacked poison damage"
+      },
+      "poison_plus": {
+        "detail": [
+          "Stack decay: {good:boss_stack_decay_interval}s"
+        ],
+        "name": "Poison +: Persistent Toxicity",
+        "short": "Boss poison stacks fade one at a time"
       }
     },
     "level": {
@@ -98,7 +164,12 @@
           "Jump distance: {good:max_jump_distance}"
         ],
         "name": "Electricity - Level {level}",
-        "short": "Chains dmg between enemies"
+        "short": "Chains dmg between enemies",
+        "plus_short": "Chains damage to nearby enemies\n[plus]Releases a second discharge[/plus]",
+        "plus_detail": [
+          "Chain dmg: {good:chain_damage_percent}%",
+          "Jump distance: {good:max_jump_distance}"
+        ]
       },
       "fire": {
         "detail": [
@@ -107,7 +178,7 @@
         ],
         "name": "Fire - Level {level}",
         "short": "Burns on hit",
-        "plus_short": "Burns on hit. [plus]Max: {max_burn_stacks} stacks[/plus]",
+        "plus_short": "Burns on hit\n[plus]Max: {max_burn_stacks} stacks[/plus]",
         "plus_detail": [
           "Damage per tick: {good:burn_damage}",
           "Duration: {good:burn_duration}s"
@@ -119,14 +190,23 @@
           "Range: {good:fragment_range}"
         ],
         "name": "Blazing Sparks - Level {level}",
-        "short": "Embedded shots burst into fragments"
+        "short": "Embedded shots burst into fragments",
+        "plus_short": "Embedded shots burst into fragments\n[plus]Fragments can refragment[/plus]",
+        "plus_detail": [
+          "Dmg per fragment: {good:fragment_damage_percent}%",
+          "Range: {good:fragment_range}"
+        ]
       },
       "fire_ice": {
         "detail": [
           "Additional multiplier: x{good:damage_multiplier}"
         ],
         "name": "Thermal Shock - Level {level}",
-        "short": "Breaking a freeze deals additional damage"
+        "short": "Breaking a freeze deals additional damage",
+        "plus_short": "Breaking a freeze deals additional damage\n[plus]Releases {thermal_fragment_count} fire and ice fragments[/plus]",
+        "plus_detail": [
+          "Additional multiplier: x{good:damage_multiplier}"
+        ]
       },
       "fire_poison": {
         "detail": [
@@ -134,7 +214,12 @@
           "Duration: {good:cloud_duration}s"
         ],
         "name": "Corrosive Cloud - Level {level}",
-        "short": "Burning enemies release poison clouds"
+        "short": "Burning enemies release poison clouds",
+        "plus_short": "Burning enemies release poison clouds\n[plus]Fire ignites the cloud[/plus]",
+        "plus_detail": [
+          "Cloud radius: {good:cloud_radius}",
+          "Duration: {good:cloud_duration}s"
+        ]
       },
       "ice": {
         "detail": [
@@ -143,7 +228,13 @@
           "Freeze duration: {good:ice_duration}s"
         ],
         "name": "Ice - Level {level}",
-        "short": "Slows and freezes on hit"
+        "short": "Slows and freezes on hit",
+        "plus_short": "Slows and freezes\n[plus]Frozen enemies slow[/plus]\n[plus]nearby enemies[/plus]",
+        "plus_detail": [
+          "Slow: {good:slow_percent}%",
+          "Slow duration: {good:slow_duration}s",
+          "Freeze duration: {good:ice_duration}s"
+        ]
       },
       "ice_electric": {
         "detail": [
@@ -153,7 +244,14 @@
           "Dmg per tick: {good:tick_damage}"
         ],
         "name": "Frozen Storm - Level {level}",
-        "short": "Freezing creates an electrified puddle"
+        "short": "Freezing creates an electrified puddle",
+        "plus_short": "Freezing creates an electrified puddle\n[plus]Electrified puddles slow enemies[/plus]",
+        "plus_detail": [
+          "Puddle size: x{good:puddle_size_multiplier}",
+          "Puddle duration: {good:puddle_duration_bonus}s",
+          "Electrified duration: {good:electric_duration}s",
+          "Dmg per tick: {good:tick_damage}"
+        ]
       },
       "ice_poison": {
         "detail": [
@@ -162,7 +260,13 @@
           "Execution threshold per stack: {good:execute_stack_percent}%"
         ],
         "name": "Toxic Fragility - Level {level}",
-        "short": "Poison can execute frozen enemies"
+        "short": "Poison can execute frozen enemies",
+        "plus_short": "Poison can execute frozen enemies\n[plus]Maximum poison sentences fragile enemies[/plus]",
+        "plus_detail": [
+          "Fragility duration: {good:fragile_duration}s",
+          "Base execution threshold: {good:execute_base_percent}%",
+          "Execution threshold per stack: {good:execute_stack_percent}%"
+        ]
       },
         "poison": {
           "detail": [
@@ -170,17 +274,29 @@
             "Duration against bosses: {good:boss_duration}s"
           ],
           "name": "Poison - Level {level}",
-          "short": "Poison increases damage taken"
+          "short": "Poison increases damage taken",
+          "plus_short": "Poison increases damage taken\n[plus]Boss stacks fade one at a time[/plus]",
+          "plus_detail": [
+            "Dmg taken per stack: {good:damage_received_percent}%",
+            "Duration against bosses: {good:boss_duration}s"
+          ]
         },
         "electric_poison": {
           "detail": [
             "Field radius: {good:radius}",
-            "Drain: {good:drain_per_second}/s",
+            "Duration: {good:overload_total_duration}s",
             "Damage per tick: {good:tick_damage}",
             "Speed: x{good:speed_multiplier}"
           ],
           "name": "Toxic Overload - Level {level}",
-          "short": "An electric toxic field fueled by enemies."
+          "short": "An electric toxic field fueled by enemies",
+          "plus_short": "An electric toxic field fueled by enemies\n[plus]Leaves a poison trail[/plus]",
+          "plus_detail": [
+            "Field radius: {good:radius}",
+            "Duration: {good:overload_total_duration}s",
+            "Damage per tick: {good:tick_damage}",
+            "Speed: x{good:speed_multiplier}"
+          ]
         }
     },
     "potion": {
@@ -240,7 +356,7 @@
           "Size: x{good:radius_multiplier}"
         ],
         "name": "Big Bullets",
-        "short": "Increases projectile size."
+        "short": "Increases projectile size"
       },
       "double_shot": {
         "detail": [
@@ -248,7 +364,7 @@
           "Spacing: {good:parallel_spacing}"
         ],
         "name": "Double Shot",
-        "short": "Fires two parallel projectiles."
+        "short": "Fires two parallel projectiles"
       },
       "electric": {
         "detail": [
@@ -283,7 +399,7 @@
           "Rear volley: {good:rear_shot}"
         ],
         "name": "Rear Shot",
-        "short": "Repeats the full volley behind you."
+        "short": "Repeats the full volley behind you"
       },
       "triple_shot": {
         "detail": [
@@ -291,7 +407,7 @@
           "Angle: {good:fan_angle}°"
         ],
         "name": "Triple Shot",
-        "short": "Fires three projectiles in a spread."
+        "short": "Fires three projectiles in a spread"
       }
     }
   },
