@@ -400,6 +400,8 @@ class CombatScreen(BaseScreen):
         #     trigger.draw(surface)
 
     def draw_entities(self, surface):
+        for enemy in self.enemies:
+            enemy.draw_ground_shadow(surface)
         self.player.draw(surface)
 
         for enemy in self.enemies:

@@ -2,6 +2,8 @@ import math
 import random
 import pygame
 
+from game.systems.toxic_smoke import SMOKE_PIXEL_SIZE, smoke_sprite
+
 
 class ToxicOverload:
     def __init__(self, player, combo_data):
@@ -20,11 +22,13 @@ class ToxicOverload:
         self.tick_timer = 0
         self.fed_enemies = set()
         self.finished = False
+        self.smoke_time = 0
 
     def update(self, dt, enemies):
         if self.finished:
             return
 
+        self.smoke_time += dt
         self.feed_new_enemies(enemies)
 
         self.charge = max(0, self.charge - self.drain_per_second * dt)
@@ -76,24 +80,34 @@ class ToxicOverload:
 
         center = (int(self.player.x), int(self.player.y))
 
-        field_width = self.radius * 2
-        field_height = int(self.radius * 1.6)
+        # The same broad clouds as the trail, slowly moving around the player.
+        smoke_size = max(12, round(self.radius * 2.6))
+        for variant, direction in ((2, 1), (5, -1)):
+            cloud = smoke_sprite(smoke_size, variant)
+            angle = direction * (self.smoke_time * 7 + variant * 31)
+            cloud = pygame.transform.rotate(cloud, angle)
+            cloud_size = (cloud.get_width(), max(1, round(cloud.get_height() * 0.8)))
+            cloud = pygame.transform.scale(cloud, (
+                max(1, cloud_size[0] // SMOKE_PIXEL_SIZE),
+                max(1, cloud_size[1] // SMOKE_PIXEL_SIZE),
+            ))
+            cloud = pygame.transform.scale(cloud, cloud_size)
+            cloud.set_alpha(180)
+            drift = pygame.Vector2(
+                math.sin(self.smoke_time * 0.8 + variant) * self.radius * 0.06,
+                math.cos(self.smoke_time * 0.6 + variant) * self.radius * 0.04,
+            )
+            surface.blit(cloud, cloud.get_rect(center=(
+                round(center[0] + drift.x), round(center[1] + drift.y)
+            )))
+
+        field_width = max(1, round(self.radius * 2))
+        field_height = max(1, round(self.radius * 1.6))
         field_surface = pygame.Surface(
             (field_width, field_height),
             pygame.SRCALPHA,
         )
-        field_rect = (0, 0, field_width, field_height)
-
-        # La elipse da al campo una sensación de cúpula sobre el suelo.
-        pygame.draw.ellipse(field_surface, (205, 145, 230, 80), field_rect)
         self.draw_electric_sparks(field_surface)
-
-        pygame.draw.ellipse(
-            field_surface,
-            (255, 220, 70, 185),
-            field_rect,
-            2,
-        )
 
         surface.blit(
             field_surface,
@@ -130,37 +144,63 @@ class ToxicOverload:
         )
 
     def draw_electric_sparks(self, field_surface):
-        frame = pygame.time.get_ticks() // 65
+        # Hold each discharge briefly, then replace its jagged branches.
+        frame = int(self.smoke_time / 0.09)
         rng = random.Random(frame)
-        center = pygame.Vector2(
-            field_surface.get_width() / 2,
-            field_surface.get_height() / 2,
-        )
+        pulse = 0.72 + 0.28 * (1 - (self.smoke_time / 0.09) % 1)
+        center = pygame.Vector2(field_surface.get_size()) / 2
         radius_x = field_surface.get_width() / 2
         radius_y = field_surface.get_height() / 2
+        bolts = []
+        tips = []
 
-        for _ in range(4):
-            bolt_angle = rng.uniform(0, math.tau)
-            start_distance = rng.uniform(1, self.radius * 0.08)
-            start = pygame.Vector2(
-                center.x + math.cos(bolt_angle) * start_distance,
-                center.y + math.sin(bolt_angle) * start_distance,
-            )
-
-            edge_distance = rng.uniform(0.58, 0.9)
-            end = pygame.Vector2(
-                center.x + math.cos(bolt_angle) * radius_x * edge_distance,
-                center.y + math.sin(bolt_angle) * radius_y * edge_distance,
-            )
-
+        def jagged_points(start, end, steps, amplitude):
             direction = end - start
+            if direction.length_squared() < 0.001:
+                return [start, end]
             normal = pygame.Vector2(-direction.y, direction.x).normalize()
-            middle = start.lerp(end, 0.5) + normal * rng.uniform(-4, 4)
-            points = [
-                (int(start.x), int(start.y)),
-                (int(middle.x), int(middle.y)),
-                (int(end.x), int(end.y)),
-            ]
+            points = [start]
+            for index in range(1, steps):
+                fraction = index / steps
+                offset = (-1 if index % 2 else 1) * rng.uniform(0.35, 1) * amplitude
+                points.append(start.lerp(end, fraction) + normal * offset)
+            points.append(end)
+            return points
 
-            pygame.draw.lines(field_surface, (255, 210, 55, 195), False, points, 2)
-            pygame.draw.lines(field_surface, (255, 250, 190, 230), False, points, 1)
+        bolt_count = rng.randint(3, 5)
+        rotation = rng.uniform(0, math.tau)
+        for index in range(bolt_count):
+            angle = rotation + index * math.tau / bolt_count + rng.uniform(-0.25, 0.25)
+            radial = pygame.Vector2(math.cos(angle) * radius_x, math.sin(angle) * radius_y)
+            start = center + radial * rng.uniform(0.08, 0.18)
+            end = center + radial * rng.uniform(0.72, 0.86)
+            points = jagged_points(start, end, rng.randint(4, 6), self.radius * 0.055)
+            bolts.append((points, False))
+            tips.append(end)
+
+            branch_points = range(2, len(points) - 2)
+            for branch_index in rng.sample(branch_points, min(2, len(branch_points))):
+                branch_start = points[branch_index]
+                branch_angle = angle + rng.choice((-1, 1)) * rng.uniform(0.5, 1.1)
+                branch_length = self.radius * rng.uniform(0.16, 0.28)
+                branch_end = branch_start + pygame.Vector2(
+                    math.cos(branch_angle), math.sin(branch_angle) * 0.8
+                ) * branch_length
+                branch = jagged_points(branch_start, branch_end, 2, self.radius * 0.025)
+                bolts.append((branch, True))
+
+        # Separate glow from the cores so crossing branches stay bright.
+        glow = pygame.Surface(field_surface.get_size(), pygame.SRCALPHA)
+        for points, branch in bolts:
+            pygame.draw.lines(glow, (255, 175, 35, int(32 * pulse)), False, points, 5 if branch else 9)
+        for points, branch in bolts:
+            pygame.draw.lines(glow, (255, 205, 55, int(75 * pulse)), False, points, 3 if branch else 5)
+        field_surface.blit(glow, (0, 0))
+        for points, branch in bolts:
+            if not branch:
+                pygame.draw.lines(field_surface, (255, 218, 70, int(220 * pulse)), False, points, 3)
+        for points, branch in bolts:
+            pygame.draw.lines(field_surface, (255, 252, 220, int((215 if branch else 255) * pulse)), False, points, 1)
+        for tip in tips:
+            pygame.draw.line(field_surface, (255, 249, 200, int(220 * pulse)), tip - (2, 0), tip + (2, 0))
+            pygame.draw.line(field_surface, (255, 249, 200, int(220 * pulse)), tip - (0, 2), tip + (0, 2))

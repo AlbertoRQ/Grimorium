@@ -3,6 +3,9 @@ import pygame
 
 from game import config
 from game.entities.entity import LivingEntity
+from game.visuals.burn_flames import draw_burn_flames
+from game.visuals.ice_block import ice_block_surfaces
+from game.visuals.flying_shadow import flying_shadow
 
 
 # Humo visual que indica que la ventana de Marca Frágil sigue activa.
@@ -11,6 +14,7 @@ FRAGILE_MIST_MAX_ALPHA = 70
 FRAGILE_MIST_PUFF_COUNT = 3
 FRAGILE_MIST_SPEED = 0.65
 FRAGILE_MIST_SIZE_MULTIPLIER = 2.4
+FLYING_SHADOW_GAP = 20
 
 
 class Enemy(LivingEntity):
@@ -42,6 +46,9 @@ class Enemy(LivingEntity):
         self.knockback_friction = 8
 
         self.damage_flash_timer = 0
+        self.burn_visual_time = 0
+        self.burn_visual_phase = (x * 0.017 + y * 0.031) % 1
+        self.freeze_fall_progress = 0
 
         self.status_effects = {
             "burn": {
@@ -115,6 +122,12 @@ class Enemy(LivingEntity):
         self.update_ice(dt)
         self.update_poison(dt)
         self.update_fragile(dt)
+        if getattr(self, "is_flying", False) and self.status_effects["ice"]["ice_timer"] > 0:
+            self.freeze_fall_progress = min(1, self.freeze_fall_progress + dt / 0.16)
+        elif getattr(self, "is_flying", False):
+            self.freeze_fall_progress = max(0, self.freeze_fall_progress - dt / 0.7)
+        else:
+            self.freeze_fall_progress = 0
 
     def update_visual_effects(self):
         ice = self.status_effects["ice"]
@@ -165,6 +178,7 @@ class Enemy(LivingEntity):
         burn = self.status_effects["burn"]
 
         if burn["timer"] > 0:
+            self.burn_visual_time += dt
             burn["timer"] -= dt
             burn["tick_timer"] -= dt
 
@@ -173,6 +187,7 @@ class Enemy(LivingEntity):
                 self.damage_flash_timer = 0.2
                 burn["tick_timer"] = 1
         else:
+            self.burn_visual_time = 0
             burn["is_burned"] = False
             burn["timer"] = 0
             burn["tick_timer"] = 0
@@ -341,6 +356,14 @@ class Enemy(LivingEntity):
             self.visual.set_state("idle")
 
 
+    def draw_ground_shadow(self, surface):
+        if not getattr(self, "is_flying", False) or self.is_dead():
+            return
+        shadow = flying_shadow(max(12, round(self.radius * 1.8)))
+        surface.blit(shadow, shadow.get_rect(center=(
+            round(self.x), round(self.y + self.radius + FLYING_SHADOW_GAP)
+        )))
+
     def draw(self, surface):
 
         sprite = self.visual.get_surface()
@@ -348,16 +371,47 @@ class Enemy(LivingEntity):
         if sprite is None:
             return
 
-        rect = sprite.get_rect(center=(int(self.x), int(self.y)))
+        # Pygame excludes both transparent pixels and the sprite's color key.
+        visible_bounds = sprite.get_bounding_rect()
+        frozen = (
+            self.status_effects["ice"]["ice_timer"] > 0
+            and not self.is_dead() and bool(visible_bounds)
+        )
+        fall_offset = 0
+        frozen_flyer = frozen and getattr(self, "is_flying", False)
+        if getattr(self, "is_flying", False) and not self.is_dead():
+            feet_offset = visible_bounds.bottom - sprite.get_height() // 2
+            drop_distance = max(0, self.radius + FLYING_SHADOW_GAP - feet_offset)
+            fall_offset = round(drop_distance * self.freeze_fall_progress ** 2)
+        rect = sprite.get_rect(center=(int(self.x), int(self.y) + fall_offset))
+        if frozen:
+            ice_body_rect = visible_bounds.move(rect.topleft)
+            ice_back, ice_front = ice_block_surfaces(
+                ice_body_rect.width, ice_body_rect.height,
+                self.status_effects["ice"].get("visual_variant", 0)
+            )
+            ice_rect = ice_back.get_rect(midbottom=(ice_body_rect.centerx, ice_body_rect.bottom + 6))
+            if frozen_flyer:
+                # Land the visible ice base and the sprite's feet on the shadow.
+                ice_rect.bottom = ice_body_rect.bottom + 2
+            surface.blit(ice_back, ice_rect)
         surface.blit(sprite, rect)
 
-        self.draw_fragile_mist(surface)
-        self.draw_status_marks(surface)
-        self.draw_burn_stack_marks(surface)
+        self.draw_fragile_mist(surface, fall_offset)
+        burn = self.status_effects["burn"]
+        if burn["timer"] > 0 and not self.is_dead():
+            draw_burn_flames(
+                surface, rect, self.burn_visual_time,
+                self.burn_visual_phase, burn["stacks"],
+            )
+        if frozen:
+            surface.blit(ice_front, ice_rect)
+        self.draw_status_marks(surface, fall_offset)
+        self.draw_burn_stack_marks(surface, fall_offset)
 
 
 
-    def draw_fragile_mist(self, surface):
+    def draw_fragile_mist(self, surface, offset_y=0):
         fragile = self.status_effects["fragile"]
         health_ratio = self.health / self.max_health
         has_fragile_mark = (
@@ -428,12 +482,12 @@ class Enemy(LivingEntity):
             mist_surface,
             (
                 int(self.x - mist_width / 2),
-                int(self.y + self.radius * 0.45 - mist_height / 2),
+                int(self.y + self.radius * 0.45 - mist_height / 2 + offset_y),
             ),
         )
 
 
-    def draw_status_marks(self, surface):
+    def draw_status_marks(self, surface, offset_y=0):
         marks = []
         
         poison = self.status_effects["poison"]
@@ -465,7 +519,7 @@ class Enemy(LivingEntity):
         total_width = (len(marks) - 1) * spacing
 
         start_x = self.x - total_width / 2
-        y = self.y - self.radius - 12
+        y = self.y - self.radius - 12 + offset_y
 
         for index, (_name, color) in enumerate(marks):
             x = start_x + index * spacing
@@ -550,7 +604,7 @@ class Enemy(LivingEntity):
             1,
         )
 
-    def draw_burn_stack_marks(self, surface):
+    def draw_burn_stack_marks(self, surface, offset_y=0):
         burn = self.status_effects["burn"]
 
         if not burn["is_burned"] or burn["max_stacks"] <= 1:
@@ -571,7 +625,7 @@ class Enemy(LivingEntity):
         spacing = 11
         total_width = (len(marks) - 1) * spacing
         start_x = self.x - total_width / 2
-        y = self.y - self.radius - 22
+        y = self.y - self.radius - 22 + offset_y
 
         for index, (_name, radius, color) in enumerate(marks):
             x = start_x + index * spacing

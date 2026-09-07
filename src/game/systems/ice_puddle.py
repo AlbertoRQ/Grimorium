@@ -2,6 +2,8 @@ import pygame
 import random
 import math
 
+from game.visuals.water_puddle import draw_water
+
 
 class IcePuddle:
     def __init__(self, x, y, enemy_radius, duration, combo_data):
@@ -131,18 +133,7 @@ class IcePuddle:
 
         puddle_surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
-        pygame.draw.ellipse(
-            puddle_surface,
-            (70, 180, 230, 85),
-            (0, 0, width, height),
-        )
-
-        pygame.draw.ellipse(
-            puddle_surface,
-            (190, 240, 255, 140),
-            (0, 0, width, height),
-            1,
-        )
+        draw_water(puddle_surface, self.timer, self.x * 0.037 + self.y * 0.051)
 
         draw_x = int(self.x - width / 2)
         draw_y = int(self.y - height / 2)

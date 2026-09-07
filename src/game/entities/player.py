@@ -37,7 +37,7 @@ class Player(LivingEntity):
         self.books_purchased = 0
         self.purchased_books = set()
 
-        self.base_bullet_elements = []
+        self.base_bullet_elements = ["ice"]
         #self.extra_bullet_element = {"poison":0.2, "electric":0.2, "ice": 0.2}
         self.extra_bullet_element = {}
         self.power_element_order = []

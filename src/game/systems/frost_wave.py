@@ -3,6 +3,8 @@ import math
 import pygame
 
 from game.systems.ice_puddle import IcePuddle
+from game.visuals.ice_block import ICE_DESIGNS
+from game.visuals.frost_wave import draw_frost_wave
 
 
 class FrostWave:
@@ -82,34 +84,14 @@ class FrostWave:
             return
 
         progress = min(self.timer / self.duration, 1)
-        alpha = int(180 * (1 - progress))
-        diameter = int(self.current_radius * 2) + 4
-
-        wave_surface = pygame.Surface(
-            (diameter, diameter),
-            pygame.SRCALPHA,
-        )
-
-        pygame.draw.circle(
-            wave_surface,
-            (160, 230, 255, alpha),
-            (diameter // 2, diameter // 2),
-            int(self.current_radius),
-            2,
-        )
-
-        surface.blit(
-            wave_surface,
-            (
-                int(self.x - diameter / 2),
-                int(self.y - diameter / 2),
-            ),
-        )
+        draw_frost_wave(surface, self.x, self.y, self.current_radius, progress)
 
 
 def freeze_enemy(enemy, ice_data, combo_data):
     ice = enemy.status_effects["ice"]
 
+    if ice["ice_timer"] <= 0:
+        ice["visual_variant"] = next(ICE_DESIGNS)
     ice["is_ice"] = True
     ice["cooldown_value"] = ice_data["ice_cooldown"]
     ice["ice_timer"] = ice_data["ice_duration"]
