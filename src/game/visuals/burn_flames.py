@@ -5,18 +5,14 @@ from functools import lru_cache
 
 import pygame
 
+from game.visuals.effect_images import effect_frame
+
 
 @lru_cache(maxsize=12)
 def flame_sprite(frame, pixel_size):
-    sprite = pygame.Surface((5, 7), pygame.SRCALPHA)
-    # A faint warm wisp with pixel falloff, without a traced flame silhouette.
-    for y in range(7):
-        center_x = 2 + math.sin(frame * 1.6 + y * 0.55) * 0.45
-        for x in range(5):
-            density = math.exp(-((x - center_x) / 1.3) ** 2 - ((y - 3.6) / 2.5) ** 2)
-            alpha = int(260 * density)
-            sprite.set_at((x, y), (255, int(120 + 45 * density), 45, alpha))
-    return pygame.transform.scale(sprite, (5 * pixel_size, 7 * pixel_size))
+    sprite = effect_frame("05_llamas.png", frame)
+    return pygame.transform.scale(sprite, (sprite.get_width() * pixel_size,
+                                           sprite.get_height() * pixel_size))
 
 
 def draw_burn_flames(surface, body_rect, time, phase, stacks):

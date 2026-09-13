@@ -3,6 +3,7 @@ import random
 import math
 
 from game.visuals.water_puddle import draw_water
+from game.visuals.electric_discharge import draw_discharge
 
 
 class IcePuddle:
@@ -167,7 +168,7 @@ class IcePuddle:
         max_bridge_length = min(width, height) * 0.45
         min_bridge_length = min(width, height) * 0.18
 
-        for _ in range(spark_count):
+        for spark_index in range(spark_count):
             start = self.get_random_point_inside_ellipse(
                 rng,
                 center,
@@ -198,52 +199,8 @@ class IcePuddle:
             if ellipse_value > 1:
                 continue
 
-            dx = end.x - start.x
-            dy = end.y - start.y
-            length = math.hypot(dx, dy)
-
-            if length <= 0:
-                continue
-
-            arc_height = rng.uniform(2, 4)
-
-            first_middle = pygame.Vector2(
-                start.x + dx * 0.33,
-                start.y + dy * 0.33 - arc_height,
-            )
-
-            second_middle = pygame.Vector2(
-                start.x + dx * 0.66,
-                start.y + dy * 0.66 - arc_height,
-            )
-
-            jitter = 2
-
-            points = [
-                (int(start.x), int(start.y)),
-                (
-                    int(first_middle.x + rng.uniform(-jitter, jitter)),
-                    int(first_middle.y + rng.uniform(-jitter, jitter)),
-                ),
-                (
-                    int(second_middle.x + rng.uniform(-jitter, jitter)),
-                    int(second_middle.y + rng.uniform(-jitter, jitter)),
-                ),
-                (int(end.x), int(end.y)),
-            ]
-
-            pygame.draw.lines(
-                puddle_surface,
-                (255, 230, 70, 210),
-                False,
-                points,
-                2,
-            )
-
-            pygame.draw.lines(
-                puddle_surface,
-                (255, 255, 240, 230),
-                False,
-                points,
-                1,
+            seed = int(self.x * 31 + self.y * 17) + spark_index * 101
+            draw_discharge(
+                puddle_surface, start, end, self.timer, seed,
+                arc_height=min(4, bridge_length * 0.18),
             )

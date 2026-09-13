@@ -3,6 +3,7 @@ import math
 import pygame
 
 from game.systems.effect_handlers import apply_fire_data
+from game.visuals.poison_storm import draw_lava_rain_drop
 
 
 class LavaDrop:
@@ -48,15 +49,5 @@ class LavaDrop:
         if self.finished:
             return
 
-        pygame.draw.circle(
-            surface,
-            (255, 100, 35),
-            (int(self.x), int(self.y)),
-            self.radius + 1,
-        )
-        pygame.draw.circle(
-            surface,
-            (255, 220, 95),
-            (int(self.x), int(self.y)),
-            self.radius,
-        )
+        draw_lava_rain_drop(surface, self.x, self.y, self.radius, self.timer,
+                            progress=min(1, self.timer / self.fall_duration))

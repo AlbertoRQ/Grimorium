@@ -188,6 +188,9 @@ def resolve_enemies_touch_player(enemies, player, blockers):
     points = 0
 
     for enemy in enemies:
+        if getattr(enemy, "contact_disabled", False):
+            enemies_left.append(enemy)
+            continue
         if circles_collide(enemy, player):
             player.take_damage(enemy.body_damage)
 

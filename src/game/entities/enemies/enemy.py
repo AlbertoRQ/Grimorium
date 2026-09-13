@@ -6,14 +6,10 @@ from game.entities.entity import LivingEntity
 from game.visuals.burn_flames import draw_burn_flames
 from game.visuals.ice_block import ice_block_surfaces
 from game.visuals.flying_shadow import flying_shadow
+from game.visuals.poison_marks import draw_poison_mark
+from game.visuals.fragile_mark import draw_fragile_crystal, draw_fragile_flecks
 
 
-# Humo visual que indica que la ventana de Marca Frágil sigue activa.
-FRAGILE_MIST_COLOR = (175, 224, 250)
-FRAGILE_MIST_MAX_ALPHA = 70
-FRAGILE_MIST_PUFF_COUNT = 3
-FRAGILE_MIST_SPEED = 0.65
-FRAGILE_MIST_SIZE_MULTIPLIER = 2.4
 FLYING_SHADOW_GAP = 20
 
 
@@ -49,6 +45,11 @@ class Enemy(LivingEntity):
         self.burn_visual_time = 0
         self.burn_visual_phase = (x * 0.017 + y * 0.031) % 1
         self.freeze_fall_progress = 0
+        self.poison_mark_stacks = 0
+        self.poison_mark_pulse = 0
+        self.fragile_visual_time = 0
+        self.sentence_visual_active = False
+        self.sentence_visual_pulse = 0
 
         self.status_effects = {
             "burn": {
@@ -121,7 +122,22 @@ class Enemy(LivingEntity):
         self.update_burn(dt)
         self.update_ice(dt)
         self.update_poison(dt)
+        poison_stacks = self.status_effects["poison"]["stacks"]
+        if poison_stacks >= 5 and self.poison_mark_stacks < 5:
+            self.poison_mark_pulse = 0.24
+        else:
+            self.poison_mark_pulse = max(0, self.poison_mark_pulse - dt)
+        self.poison_mark_stacks = poison_stacks
         self.update_fragile(dt)
+        self.fragile_visual_time += dt
+        fragile = self.status_effects["fragile"]
+        sentence_visible = (fragile["timer"] > 0 and fragile["is_sentenced"]
+                            and self.health / self.max_health <= fragile["sentence_threshold"])
+        if sentence_visible and not self.sentence_visual_active:
+            self.sentence_visual_pulse = .28
+        else:
+            self.sentence_visual_pulse = max(0, self.sentence_visual_pulse - dt)
+        self.sentence_visual_active = sentence_visible
         if getattr(self, "is_flying", False) and self.status_effects["ice"]["ice_timer"] > 0:
             self.freeze_fall_progress = min(1, self.freeze_fall_progress + dt / 0.16)
         elif getattr(self, "is_flying", False):
@@ -364,7 +380,7 @@ class Enemy(LivingEntity):
             round(self.x), round(self.y + self.radius + FLYING_SHADOW_GAP)
         )))
 
-    def draw(self, surface):
+    def draw(self, surface, visual_offset_y=0):
 
         sprite = self.visual.get_surface()
 
@@ -377,7 +393,7 @@ class Enemy(LivingEntity):
             self.status_effects["ice"]["ice_timer"] > 0
             and not self.is_dead() and bool(visible_bounds)
         )
-        fall_offset = 0
+        fall_offset = visual_offset_y
         frozen_flyer = frozen and getattr(self, "is_flying", False)
         if getattr(self, "is_flying", False) and not self.is_dead():
             feet_offset = visible_bounds.bottom - sprite.get_height() // 2
@@ -397,7 +413,7 @@ class Enemy(LivingEntity):
             surface.blit(ice_back, ice_rect)
         surface.blit(sprite, rect)
 
-        self.draw_fragile_mist(surface, fall_offset)
+        self.draw_fragile_frost(surface, fall_offset)
         burn = self.status_effects["burn"]
         if burn["timer"] > 0 and not self.is_dead():
             draw_burn_flames(
@@ -411,7 +427,7 @@ class Enemy(LivingEntity):
 
 
 
-    def draw_fragile_mist(self, surface, offset_y=0):
+    def draw_fragile_frost(self, surface, offset_y=0):
         fragile = self.status_effects["fragile"]
         health_ratio = self.health / self.max_health
         has_fragile_mark = (
@@ -428,64 +444,8 @@ class Enemy(LivingEntity):
         if not (has_fragile_mark or has_sentence_mark):
             return
 
-        mist_width = max(
-            8,
-            int(self.radius * 2.1 * FRAGILE_MIST_SIZE_MULTIPLIER),
-        )
-        mist_height = max(
-            6,
-            int(self.radius * 1.25 * FRAGILE_MIST_SIZE_MULTIPLIER),
-        )
-        mist_surface = pygame.Surface(
-            (mist_width, mist_height),
-            pygame.SRCALPHA,
-        )
-        time = pygame.time.get_ticks() / 1000
-
-        for puff_index in range(FRAGILE_MIST_PUFF_COUNT):
-            progress = (
-                time * FRAGILE_MIST_SPEED
-                + puff_index / FRAGILE_MIST_PUFF_COUNT
-            ) % 1
-            puff_width = max(
-                3,
-                int(
-                    self.radius
-                    * (0.55 + progress * 0.25)
-                    * FRAGILE_MIST_SIZE_MULTIPLIER
-                ),
-            )
-            puff_height = max(2, int(puff_width * 0.52))
-            side_direction = -1 if puff_index % 2 == 0 else 1
-            side_drift = side_direction * self.radius * progress * 2
-            side_wobble = math.sin(puff_index * 4.2 + time * 1.4) * self.radius * 0.1
-            puff_x = int(
-                mist_width / 2
-                + side_drift
-                + side_wobble
-                - puff_width / 2
-            )
-            puff_y = int(
-                mist_height
-                - puff_height
-                - progress**1.7 * mist_height * 0.7
-            )
-            alpha = int(FRAGILE_MIST_MAX_ALPHA * (1 - progress))
-
-            pygame.draw.ellipse(
-                mist_surface,
-                (*FRAGILE_MIST_COLOR, alpha),
-                (puff_x, puff_y, puff_width, puff_height),
-            )
-
-        surface.blit(
-            mist_surface,
-            (
-                int(self.x - mist_width / 2),
-                int(self.y + self.radius * 0.45 - mist_height / 2 + offset_y),
-            ),
-        )
-
+        draw_fragile_flecks(surface, self.x, self.y + offset_y, self.radius,
+                            self.fragile_visual_time + self.burn_visual_phase, has_sentence_mark)
 
     def draw_status_marks(self, surface, offset_y=0):
         marks = []
@@ -493,8 +453,11 @@ class Enemy(LivingEntity):
         poison = self.status_effects["poison"]
 
         poison_stacks = poison["stacks"]
-        for _ in range(poison_stacks):
-            marks.append(("poison", (180, 80, 220)))
+        if poison_stacks >= 5:
+            marks.append(("poison_full", (180, 80, 220)))
+        else:
+            for _ in range(poison_stacks):
+                marks.append(("poison", (180, 80, 220)))
         
         fragile = self.status_effects["fragile"]
         health_ratio = self.health / self.max_health
@@ -515,94 +478,31 @@ class Enemy(LivingEntity):
             return
 
         mark_radius = 3
-        spacing = 8
-        total_width = (len(marks) - 1) * spacing
+        widths = [22 if name == "poison_full" else 5 if name == "poison" else 26 if name == "sentenced" else 14
+                  for name, _ in marks]
+        spacing = 3
+        total_width = sum(widths) + spacing * (len(marks) - 1)
 
         start_x = self.x - total_width / 2
         y = self.y - self.radius - 12 + offset_y
 
         for index, (_name, color) in enumerate(marks):
-            x = start_x + index * spacing
+            x = start_x + widths[index] / 2
+            start_x += widths[index] + spacing
 
             if _name == "fragile":
                 self.draw_fragile_mark(surface, x, y, mark_radius)
             elif _name == "sentenced":
                 self.draw_sentence_mark(surface, x, y, mark_radius)
             else:
-                pygame.draw.circle(
-                    surface,
-                    (20, 20, 25),
-                    (int(x), int(y)),
-                    mark_radius + 1,
-                )
-
-                pygame.draw.circle(
-                    surface,
-                    color,
-                    (int(x), int(y)),
-                    mark_radius,
-                )
+                draw_poison_mark(surface, x, y, _name == "poison_full", self.poison_mark_pulse)
 
     def draw_fragile_mark(self, surface, x, y, radius):
-        outer_points = [
-            (int(x), int(y - radius - 1)),
-            (int(x + radius + 1), int(y)),
-            (int(x), int(y + radius + 1)),
-            (int(x - radius - 1), int(y)),
-        ]
-        inner_points = [
-            (int(x), int(y - radius)),
-            (int(x + radius), int(y)),
-            (int(x), int(y + radius)),
-            (int(x - radius), int(y)),
-        ]
-
-        pygame.draw.polygon(surface, (25, 35, 55), outer_points)
-        pygame.draw.polygon(surface, (190, 235, 255), inner_points)
-        pygame.draw.line(
-            surface,
-            (255, 255, 255),
-            (int(x), int(y - radius + 1)),
-            (int(x), int(y + radius - 1)),
-            1,
-        )
+        draw_fragile_crystal(surface, x, y)
 
     def draw_sentence_mark(self, surface, x, y, radius):
-        pygame.draw.circle(
-            surface,
-            (35, 20, 25),
-            (int(x), int(y)),
-            radius + 1,
-        )
-
-        pygame.draw.line(
-            surface,
-            (120, 30, 35),
-            (int(x - radius), int(y - radius)),
-            (int(x + radius), int(y + radius)),
-            3,
-        )
-        pygame.draw.line(
-            surface,
-            (120, 30, 35),
-            (int(x + radius), int(y - radius)),
-            (int(x - radius), int(y + radius)),
-            3,
-        )
-        pygame.draw.line(
-            surface,
-            (255, 205, 65),
-            (int(x - radius), int(y - radius)),
-            (int(x + radius), int(y + radius)),
-            1,
-        )
-        pygame.draw.line(
-            surface,
-            (255, 205, 65),
-            (int(x + radius), int(y - radius)),
-            (int(x - radius), int(y + radius)),
-            1,
-        )
+        draw_fragile_crystal(surface, x, y, sentenced=True, pulse=self.sentence_visual_pulse,
+                             time=self.fragile_visual_time)
 
     def draw_burn_stack_marks(self, surface, offset_y=0):
         burn = self.status_effects["burn"]

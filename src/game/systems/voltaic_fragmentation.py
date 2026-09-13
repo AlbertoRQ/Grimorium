@@ -1,5 +1,6 @@
 import pygame
 from game.entities.bullets.bullet import create_fragment
+from game.visuals.voltaic_rock import draw_voltaic_rock
 
 
 class VoltaicFragmentation:
@@ -62,36 +63,9 @@ class VoltaicFragmentation:
             return
 
         progress = min(self.timer / self.duration, 1)
-        pulse = int(self.timer * 30) % 2
-
-        position = (int(self.x), int(self.y))
-
-        #halo_radius = self.bullet_radius + 2 + int(progress * 4)
-        halo_radius = self.bullet_radius + 2 + int(progress * 3) + pulse
-
-        # Halo amarillo de sobrecarga
-        pygame.draw.circle(
-            surface,
-            (255, 220, 40),
-            position,
-            halo_radius,
-        )
-
-        # Interior oscuro para que el halo sea solo un borde
-        pygame.draw.circle(
-            surface,
-            (45, 40, 20),
-            position,
-            max(1, halo_radius - 1),
-        )
-
-        # Bala original incrustada
-        pygame.draw.circle(
-            surface,
-            self.bullet_color,
-            position,
-            self.bullet_radius,
-        )
+        radius = max(4, self.bullet_radius + 1) if self.is_refragmentation else max(7, self.bullet_radius + 3)
+        draw_voltaic_rock(surface, self.x, self.y, radius, progress,
+                          self.timer, angle=(self.x * 7 + self.y * 3) % 360)
 
     def create_fragments(self):
         fragment_count = self.combo_data["fragment_count"]
@@ -140,6 +114,8 @@ class VoltaicFragmentation:
                 max_distance=fragment_range,
                 damage=fragment_damage,
                 effect_data={"combos": {"fire_electric": self.combo_data}},
+                fragment_style=("voltaic_rock" if self.can_refragment and not self.is_refragmentation
+                                else "voltaic_stone"),
             )
             fragment.can_refragment = self.can_refragment
 

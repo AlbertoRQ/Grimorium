@@ -117,11 +117,11 @@ class Game:
 
         self.go_to_next_run_screen()
 
-    def start_boss_test(self):
+    def start_boss_test(self, boss_type="basic"):
         self.player = Player()
         self.mode = "boss_test"
 
-        self.screen_manager.set_screen(BossScreen(self))
+        self.screen_manager.set_screen(BossScreen(self, boss_type=boss_type))
 
 
     def run(self):

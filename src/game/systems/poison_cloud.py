@@ -3,6 +3,7 @@ import random
 import pygame
 
 from game.systems.lava_drop import LavaDrop
+from game.visuals.poison_storm import cloud_sprite
 
 
 class PoisonCloud:
@@ -145,9 +146,9 @@ class PoisonCloud:
         scale = 0.35 + 0.65 * rise_progress
         display_y = self.get_display_y()
 
-        cloud_width = int(self.radius * 2.5 * scale)
-        cloud_height = int(self.radius * 0.8 * scale)
-        shadow_width = int(self.radius * 2.2 * scale)
+        cloud_width = max(1, int(self.radius * 2.5 * scale))
+        cloud_height = max(1, int(self.radius * 1.2 * scale))
+        shadow_width = max(1, int(self.radius * 2.2 * scale))
         shadow_height = max(2, int(self.radius * 0.28 * scale))
 
         shadow_surface = pygame.Surface(
@@ -167,31 +168,8 @@ class PoisonCloud:
             ),
         )
 
-        cloud_surface = pygame.Surface(
-            (cloud_width, cloud_height),
-            pygame.SRCALPHA,
-        )
-
-        pygame.draw.ellipse(
-            cloud_surface,
-            (170, 60, 220, 70),
-            (0, 0, cloud_width, cloud_height),
-        )
-
-        pygame.draw.ellipse(
-            cloud_surface,
-            (210, 120, 255, 90),
-            (0, 0, cloud_width, cloud_height),
-            2,
-        )
-
-        if self.is_ignited:
-            pygame.draw.ellipse(
-                cloud_surface,
-                (255, 120, 45, 170),
-                (2, 2, cloud_width - 4, cloud_height - 4),
-                1,
-            )
+        frame = int(-self.duration * 8 + self.x * 0.03) % 24
+        cloud_surface = cloud_sprite(cloud_width, cloud_height, self.is_ignited, frame)
 
         surface.blit(
             cloud_surface,

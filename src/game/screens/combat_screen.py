@@ -11,6 +11,7 @@ from game.systems.collisions import (
     circles_collide
 )
 from game.systems.voltaic_fragmentation import VoltaicFragmentation
+from game.visuals.voltaic_rock import VoltaicRockBurst
 from game.systems.poison_cloud import PoisonCloud
 from game.systems.lava_drop import LavaDrop
 from game.systems.ice_puddle import IcePuddle
@@ -607,6 +608,10 @@ class CombatScreen(BaseScreen):
         for effect in self.voltaic_fragmentations:
             fragments = effect.update(dt)
             new_fragments.extend(fragments)
+            if effect.finished:
+                self.combat_effects.append(VoltaicRockBurst(
+                    effect.x, effect.y, effect.inward_direction, effect.is_refragmentation
+                ))
 
         self.voltaic_fragmentations = [
             effect

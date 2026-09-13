@@ -5,6 +5,8 @@ import math
 import random
 from game import config
 from game.entities.entity import Entity
+from game.visuals.voltaic_rock import draw_voltaic_rock
+from game.visuals.effect_images import effect_image
 
 
 
@@ -114,6 +116,12 @@ class Bullet(Entity):
         )
     
     def draw(self, surface):
+        if self.fragment_style in ("voltaic_rock", "voltaic_stone"):
+            draw_voltaic_rock(surface, self.x, self.y, max(3, self.radius + 1),
+                              0.55 if self.fragment_style == "voltaic_rock" else 0,
+                              self.visual_timer, angle=self.visual_timer * 180,
+                              energized=self.fragment_style == "voltaic_rock")
+            return
         if self.fragment_style == "thermal_stalactite":
             self.draw_thermal_stalactite(surface)
             return
@@ -130,41 +138,12 @@ class Bullet(Entity):
         pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), self.radius)
 
     def draw_thermal_stalactite(self, surface):
-        direction = pygame.Vector2(self.vel_x, self.vel_y)
-
-        if direction.length_squared() <= 0:
+        if self.vel_x == 0 and self.vel_y == 0:
             return
-
-        direction = direction.normalize()
-        perpendicular = pygame.Vector2(-direction.y, direction.x)
-        center = pygame.Vector2(self.x, self.y)
-
-        tip = center + direction * (self.radius + 6)
-        back = center - direction * (self.radius + 3)
-        outer_points = [
-            tip,
-            back + perpendicular * (self.radius + 2),
-            back - perpendicular * (self.radius + 2),
-        ]
-
-        inner_tip = center + direction * (self.radius + 3)
-        inner_back = center - direction * self.radius
-        inner_points = [
-            inner_tip,
-            inner_back + perpendicular * self.radius,
-            inner_back - perpendicular * self.radius,
-        ]
-
-        pygame.draw.polygon(surface, (110, 210, 255), outer_points)
-        pygame.draw.polygon(surface, (235, 245, 255), inner_points)
-        pygame.draw.circle(
-            surface,
-            (255, 137, 69),
-            (int(self.x), int(self.y)),
-            max(1, self.radius - 1),
-        )
-
-        
+        image = effect_image("13_estaca.png")
+        angle = math.degrees(math.atan2(self.vel_y, self.vel_x))
+        image = pygame.transform.rotate(image, -angle)
+        surface.blit(image, image.get_rect(center=(round(self.x), round(self.y))))
 
     def draw_electric_sparks(self, surface):
         center = pygame.Vector2(self.x, self.y)

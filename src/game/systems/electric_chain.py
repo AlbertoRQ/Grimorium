@@ -1,6 +1,6 @@
 import math
-import random
-import pygame
+
+from game.visuals.electric_discharge import ElectricImpact, draw_discharge
 
 
 class ElectricChain:
@@ -83,10 +83,12 @@ class ElectricChain:
                 self.finished = True
                 return self.create_second_discharge()
 
+        visual_effects = []
         self.timer += dt
 
         if self.timer >= self.jump_duration:
             self.target.take_damage(self.damage)
+            visual_effects.append(ElectricImpact(self.target.x, self.target.y))
 
             self.visited.add(self.target)
             self.source = self.target
@@ -97,9 +99,9 @@ class ElectricChain:
 
             if self.jumps_done >= self.max_jumps:
                 self.finished = True
-                return self.create_second_discharge()
+                return visual_effects + self.create_second_discharge()
 
-        return []
+        return visual_effects
 
 
     def draw(self, surface):
@@ -114,35 +116,5 @@ class ElectricChain:
         end_x = start_x + (self.target.x - start_x) * progress
         end_y = start_y + (self.target.y - start_y) * progress
 
-        dx = end_x - start_x
-        dy = end_y - start_y
-        length = math.hypot(dx, dy)
-
-        if length == 0:
-            return
-
-        perpendicular_x = -dy / length
-        perpendicular_y = dx / length
-
-        points = [(start_x, start_y)]
-
-        segment_length = 8
-        segments = max(1, math.ceil(length / segment_length))
-        max_offset = min(6, length * 0.15)
-
-        for index in range(1, segments):
-            amount = index / segments
-            offset = random.uniform(-max_offset, max_offset)
-
-            x = start_x + dx * amount + perpendicular_x * offset
-            y = start_y + dy * amount + perpendicular_y * offset
-
-            points.append((x, y))
-
-        points.append((end_x, end_y))
-
-        outer_color = (255, 233, 59)
-        inner_color = (255, 253, 253)
-
-        pygame.draw.lines(surface, outer_color, False, points, 3)
-        pygame.draw.lines(surface, inner_color, False, points, 1)
+        seed = int(start_x * 31 + start_y * 17) + self.jumps_done * 101
+        draw_discharge(surface, (start_x, start_y), (end_x, end_y), self.timer, seed)
